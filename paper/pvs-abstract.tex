@@ -1,0 +1,605 @@
+
+\chap{Abstraction and Model Checking in the \MuC}{mu-calculus}
+
+In  recent work~\cite{SS:PVS.Integration} a propositional  mu-calculus
+model checker \cite{Jan:Mu-calculus} has been integrated into PVS as a
+decision  procedure.  This  integration uses a  relational mu-calculus
+(quantified   Boolean formulas with  least   and greatest fixpoints of
+monotone Boolean predicate transformers) as a medium for communicating
+between PVS  and the model checker  for the propositional mu-calculus.
+In this  section we  shall see how   to apply this  integration to our
+protocol.  First, we   present  the mu-calculus  within PVS,  then  we
+outline the meta theory behind the proof that we shall carry out using
+the integration, and finally we apply the  theory to our example.  The
+full formal texts  associated   with this  chapter  are  contained  in
+appendix~\ref{app-abstraction}.
+
+
+\section{Introduction to the \MuC{} within PVS}
+
+The theory {\tt mucalculus} defines an  operator {\tt mu} that returns
+the least fixpoint of a monotone predicate transformer.
+
+\begin{smallsession}
+  mucalculus[State:TYPE] : THEORY
+    BEGIN
+       PT : TYPE = [pred[State]->pred[State]]
+       ...
+       mu(pt:PT):pred[State] = least_fixpoint(pt)
+    END mucalculus
+\end{smallsession}
+
+More usefully, the temporal operators of the branching time logic CTL can
+be defined using this mu-calculus.  In particular, we can define the CTL
+{\tt AG} operator which represents the modality: ``for every path, and for
+every state along that path'' of CTL. 
+
+\begin{smallsession}
+  ctl[State:TYPE] : THEORY
+  BEGIN
+    IMPORTING MU@mucalculus
+
+    st,st0 : VAR State
+    Q,i,p : VAR pred[State]
+    n : VAR pred[[State,State]] 
+
+    reachable(i,n):pred[State] =
+      mu(LAMBDA Q:
+           LAMBDA st:
+             i(st) OR
+             EXISTS st0:
+               Q(st0) AND n(st0,st))
+
+    AG(i,n)(p):bool =
+      FORALL st: reachable(i,n)(st) IMPLIES p(st)
+  END ctl
+\end{smallsession}
+
+The assertion  {\tt AG(i,n)(p)}, where {\tt   i} is the initialization
+predicate and {\tt n}  is the  next-state relation,  holds if {\tt  p}
+holds in  all reachable states, the latter  notion defined in terms of
+the least  fixpoint  operator {\tt  mu}.
+
+When the state type is finite, i.e.,  constructed inductively from the
+booleans and  scalar types using   records,  tuples, or  arrays   over
+subranges, the  PVS   mu-calculus     (and the
+corresponding   CTL)  can  be   translated   into  the   propositional
+mu-calculus and model checking can be used as a decision procedure for
+this fragment, using just boolean variables and BDD's.  The PVS proof
+command {\tt model-check} carries out these verification steps
+automatically.  
+
+The  resulting  model  checker by  itself  has few  advantages  over a
+conventional model checker.  The main advantage is when it is combined
+with theorem  proving  to exploit  the use  of abstraction   to reduce
+unbounded state spaces to finite ones.  Abstraction is well-studied in
+the
+literature~\cite{CGL:Model.Check.Abstr,Dams&Grumberg&Gerth:PROCOMET,graf:abstraction95},
+but the reasoning is usually  carried out informally because the model
+checkers were not hitherto integrated with theorem provers.
+
+
+\section{Abstraction Proofs, the General Case}
+
+In order to prove an {\tt AG} property, 
+there  is  a  simple  way  to  define an   abstraction,  as  shown  in
+\cite{CGL:Model.Check.Abstr} and recalled in \cite{SS:PVS.Integration}. 
+Suppose we are given a concrete, possibly infinite-state, system $S_c$
+(like  our   protocol)  defined by a    state type,  an initialization
+predicate and a  next-state transition relation over  the state.  That
+is: $S_c = \langle
+\Sigma_c,I_c,N_c\rangle$,
+where $I_c  : \Sigma_c  \rightarrow  \cal{B}$  and $N_c :  (\Sigma_c  \times
+\Sigma_c) \rightarrow \cal{B}$. Suppose further that we want to verify  the 
+property  $p_c :  \Sigma_c  \rightarrow \cal{B}$  about the concrete system,
+that is,   $AG(I_c,N_c)(p_c)$.
+We define an abstract system:  $S_a = \langle \Sigma_a,I_a,N_a\rangle$
+and an abstract  property $p_a$, together  with an abstraction mapping
+$h : \Sigma_c \rightarrow \Sigma_a$.  We then show that the abstract system 
+satisfies the abstract  property, and  that the  mapping  preserves the 
+initialization predicate, the next-state relation and the property. This
+is expressed by the following theorem which has been proved using PVS:
+\begin{theorem}\label{theorem-abstraction}
+In   order to  prove  
+$AG(I_c,N_c)(p_c)$ it   is
+sufficient to prove that:
+\begin{enumerate}
+\item $\forall s:\Sigma_c.\; I_c(s) \Rightarrow I_a(h(s))$
+
+\item $\forall s_1,s_2:\Sigma_c^r.\; 
+          N_c(s_1,s_2) \Rightarrow N_a(h(s_1),h(s_2))$
+      where $\Sigma_c^r$ denotes all the concrete states reachable from 
+      an initial state via the next-state relation.
+
+\item $\forall s:\Sigma_c.\; p_a(h(s)) \Rightarrow p_c(s)$
+
+\item $AG(I_a,N_a)(p_a)$
+\end{enumerate}
+\end{theorem}
+
+
+\begin{proof}
+
+Assume that the  properties 1--4 above  hold, and consider a trace of
+the  concrete  system: we shall prove  that  every state in this trace
+satisfies $p_c$. First we prove that for every state $s$ of the trace,
+$h(s)$ is reachable in the abstract system via the abstract next-state
+relation.  We do this by  induction over the  distance of the concrete
+states in the trace from  the initial state in  the trace, the initial
+state  having   distance  0 and the    next-state  relation increasing
+distance by one.   That is, first observe  the initial state  $s_0$ in
+the concrete trace (base case).  Due to  1, we have that also $h(s_0)$
+is  initial  in the abstract system,    hence reachable.  As induction
+step, consider next some concrete state $s_1$ and concrete state $s_2$
+such that $N_c(s_1,s_2)$ and  $s_1$ has distance  $n$ from the initial
+state.  Then due to 2,  also $N_a(h(s_1),h(s_2))$; and since $s_1$ has
+distance $n$: $h(s_1)$ is reachable in the  abstract system due to the
+induction hypothesis, and   hence also $h(s_2)$  is  reachable  in the
+abstract system.
+ 
+So there exists an abstract trace such that for every state $s$ in our
+concrete trace, $h(s)$ is in the  abstract trace. Now consider such an
+arbitrary concrete $s$: due to 4  we have that $p_a(h(s))$, and then
+due to 3 we then have that $p_c(s)$.
+
+\end{proof}
+
+
+\section{An Abstraction of the Protocol}
+
+In  this  section we   present   the finite-state abstraction  of  the
+protocol.   The  full     formal  PVS  theories  are     contained  in
+appendix~\ref{app-abstract-verification}.
+
+\vspace{0.5cm}
+\noindent{\bf Types, Constants and Variables:}
+
+We saw that there were three sources of unboundedness in BRP: the file
+size, the message data, and the retransmission bound.  These can be
+abstracted away to obtain a property-preserving abstraction.  The main
+trick is that since we are dealing with ACTL properties, i.e., those that
+involve only universal path quantification, it is okay to introduce
+additional nondeterminism at the abstract level.  In particular, the size
+of the as yet untransmitted portion of the file can be abstracted to one
+of {\tt NONE}, {\tt ONE}, or {\tt MANY}, the message data are irrelevant
+and can be eliminated, and the retransmission bound can be replaced by a
+nondeterministic choice between the continuation and termination of
+retransmission.  
+
+As a result, the type {\tt  Data} is removed.   A file is no longer an
+array of {\tt   Data}  but an element  of   the enumerated type   {\tt
+\{NONE,ONE,MANY\}},  indicating whether the  file has no elements, one
+element or more than one element.  The  constant {\tt max} is removed:
+there   is  no   longer     an upper    bound for   the     number  of
+retransmissions. This is possible since we  just require that whenever
+the concrete protocol can  make  a transition, the abstract   protocol
+must also be  able to, and surely, if  we remove the upper bound, then
+this is guaranteed. The counter {\tt rn} itself that counts the number
+of retransmissions is turned into a single boolean: it is true only if
+a message  has been  sent at least  once.    The file component  ({\tt
+afile}) in the {\tt automaton}  is just a boolean, indicating  whether
+it is empty or not: whether there is more to send or not.
+Finally, we need a special variable in the state {\tt data\_is\_safe},
+which represents the  fact that a data  value being transmitted is the
+right one.
+
+\begin{smallsession}
+  abstract_protocol : THEORY 
+  BEGIN
+    IMPORTING ctl
+
+    File : TYPE = \{NONE,ONE,MANY\}
+    Msg  : TYPE = [# first: bool, last: bool, toggle: bool #]
+
+    State : TYPE =
+      [# afile        : bool,
+         data_is_safe : bool,
+         rn           : bool,
+         file         : File,
+         req          : File,
+         SAFE         : bool,
+         ...
+      #]
+
+    ...
+  END abstract_protocol
+\end{smallsession}
+
+
+\vspace{0.5cm}
+\noindent{\bf The Automaton:}
+
+The {\tt automaton} specification  also changes but this is acceptable
+since Theorem~\ref{theorem-abstraction}    admits an abstract property
+$p_a$  distinct  from the concrete  property $p_c$.   The data type of
+actions changes and becomes:
+
+\begin{smallsession}
+  Action : DATATYPE
+    BEGIN
+      REQ:REQ?
+      IND(ind:IndT):IND?
+      IND_ERR:IND_ERR?
+      CONF(conf:Conf):CONF?
+    END Action
+\end{smallsession}
+
+It has been changed in  two ways. First, the  {\tt REQ} constructor no
+longer takes a file as parameter: the automaton  no longer cares about
+this information.  Second: data  have  been removed   from indications
+({\tt IND}). The automaton itself has also been changed correspondingly.
+
+\begin{smallsession}
+  automaton(st:State,action:Action):State =
+    CASES action OF
+      REQ:
+        LET
+          st = st WITH [SAFE := NOT abusy(st)],
+          st = st WITH [abusy := TRUE],
+          st = st WITH [afile := TRUE]
+        IN st,
+      IND(i):
+        LET
+          st = st WITH [SAFE :=
+            abusy(st) AND NOT aerror(st) AND
+            afile(st) AND data_is_safe(st) AND
+            (i=FIRST IMPLIES afirst(st)) AND
+            (i=INCOMPLETE IMPLIES NOT afirst(st))],
+          st = st WITH [afirst := i=LAST],
+          st = st WITH [afile  := i/=LAST]
+        IN st,
+      IND_ERR:
+        ...,
+      CONF(c):
+        ...
+    ENDCASES
+\end{smallsession}
+
+Note that in the  {\tt REQ} case, {\tt afile}  is set to {\tt TRUE} to
+indicate that the file now is non-empty. Before, it  was set to denote
+the new  file, and  the {\tt ahead}   was set to  point  to the  first
+element in this file ({\tt ahead := 1}). In the {\tt IND} case, substantial
+changes have been made. This case did before look as follows:
+
+\begin{smallsession}
+  IND(d,i):
+    LET
+      st = st WITH [SAFE :=
+        abusy(st) AND NOT aerror(st) AND
+        ahead(st) /= nil AND
+        d = afile(st)(ahead(st)) AND
+        i = IF ahead(st) = last THEN 
+              LAST
+            ELSE IF afirst(st) THEN 
+                   FIRST
+                 ELSE 
+                   INCOMPLETE
+                 ENDIF
+            ENDIF],
+      st = st WITH [afirst := ahead(st) = last],
+      st = st WITH [ahead  := incr_head(ahead(st))]
+    IN st,
+\end{smallsession}
+
+So, for example the concrete test {\tt  ahead(st) /= nil} (the file is
+not empty) has become  {\tt afile(st)} in  the abstract version. Also,
+the test  {\tt d  = afile(st)(ahead(st))}  in  the concrete has become
+{\tt data\_is\_safe}.   We  shall see how the  mapping  maps the right
+information into that variable. Note also how the abstraction allows a
+{\tt LAST}    indication at any  time. Observe   also how the concrete
+update of the variable {\tt ahead} has  been replaced with an updating
+of {\tt afile}. Also the updating of {\tt afirst} has been changed.\\
+
+
+\vspace{0.5cm}
+\noindent{\bf Transition Rules:}
+
+We will only present the change of two rules, namely {\tt Rule\_write\_K} and
+{\tt Rule\_stimer1}. The first rule is changed as follows:
+
+\begin{smallsession}
+  Rule_write_K(st:State):State =
+    IF spc(st) = SF AND NOT K_full(st) THEN 
+      LET 
+        st = st WITH [K_full := TRUE],
+        st = st WITH [(K)(first) := sfirst(st)],
+        st = st WITH [(K)(last) := file(st)=ONE],
+        st = st WITH [(K)(toggle) := stoggle(st)],
+        st = st WITH [spc := WA],
+        st = st WITH [rn := TRUE],
+        st = st WITH [stimer1_on := TRUE]
+      IN st
+    ELSE 
+      st
+    ENDIF
+\end{smallsession}
+
+Here the update of {\tt K(last)} has  been changed. Before it was {\tt
+K(last) := (head(st)=last)}. The update of {\tt rn} has changed, before
+it was {\tt rn := rn + 1} (in principle).  Finally, before there was an
+update   of  {\tt  K(data)},    which   has  now disappeared.     {\tt
+Rule\_stimer1}   has been implemented  as two  rules   in the abstract
+protocol:
+
+\begin{smallsession}
+  Rule_stimer1_QUIT(st:State):State =
+    IF stimer1_on(st) AND stimer1_enabled(st) THEN
+      LET 
+        st = st WITH [spc := SC],
+        st = st WITH [stimer1_on := FALSE],
+        st = st WITH [stimer1_enabled := FALSE]
+      IN st
+    ELSE 
+      st
+    ENDIF
+
+  Rule_stimer1_RETRY(st:State):State =
+    IF stimer1_on(st) AND stimer1_enabled(st) THEN
+      LET 
+        st = st WITH [spc := SF],
+        st = st WITH [stimer1_on := FALSE],
+        st = st WITH [stimer1_enabled := FALSE]
+      IN st
+    ELSE 
+      st
+    ENDIF
+\end{smallsession}
+
+Recall that  the  behavior  of the    concrete  rule depends  on  the
+condition whether  the   maximum number of  retransmissions   has been
+reached, {\tt rn(st)=max}: if it is  true, then {\tt  spc := SC} (quit
+and send  confirmation)   else {\tt  spc  :=   SF}  (retry   and  send
+again).  The abstract protocol  is just supposed  to be able to follow
+any such transition taken by  the concrete one, so a non-deterministic
+choice between the two possibilities  is sufficient, hence two  rules.
+Recall that our  choice  has been to  let  each rule  be deterministic,
+only allowing non-determinism   in the selection  of which  rule to be
+executed at a given moment.
+
+Besides these rules also a corresponding {\tt transition} relation is
+defined as the standard disjunction of all the rules, and also an 
+{\tt initial} predicate is defined on abstract states.
+
+
+\section{The Abstraction Mapping}
+
+The abstraction mapping between the concrete state type and
+the abstract state type is then given by the function {\tt abs}
+defined below.
+
+\begin{smallsession}
+  abstraction : THEORY
+  BEGIN
+
+    A  : THEORY = abstract_protocol
+    C  : THEORY = protocol
+
+    abs_file(h:C.Position):A.File =
+      IF h=nil THEN
+        NONE
+      ELSIF h=last THEN
+        ONE
+      ELSE
+        MANY
+      ENDIF
+
+    abs(s:C.State):A.State =
+      (#  ...
+          K               := (# first  := first(K(s)),
+                                last   := last(K(s)),
+                                toggle := toggle(K(s)) #),
+          req             := IF C.last = 1 THEN ONE ELSE MANY ENDIF,
+          file            := abs_file(head(s)),
+          rn              := rn(s)/=0,
+          msg             := (# first  := first(msg(s)),
+                                last   := last(msg(s)),
+                                toggle := toggle(msg(s)) #), 
+          data_is_safe    := rpc(s)=SI IMPLIES 
+                               data(msg(s))=afile(s)(ahead(s)),
+          afile           := ahead(s)/=nil,
+          ...
+      #)
+
+    ...
+  END abstraction
+\end{smallsession}
+
+The  two protocols, abstract and   concrete, are imported via so called
+theory instantiations: each instantiation is given a name such that we
+can distinguish the components of the two  theories. The function {\tt
+abs}  is  the  abstraction function from   the concrete  state to  the
+abstract state,  and is here given  in its entirety except  for fields
+that are unchanged; the latter being mapped as  {\tt name := name(s)}.
+
+The  {\tt file} component containing  the current file being processed
+by the sender depends  in the abstract  protocol on how many  messages
+there  are left in  the concrete. The {\tt  rn} component is a boolean
+being true if  at least  one  retransmission has  been performed.  The
+{\tt  afile} component is also a  boolean being true if messages still
+remain in the {\tt automaton} file.
+
+The {\tt K} component is a
+reduced record  where the data component  has been  ignored.  The {\tt
+msg} component is the receiver's copy of {\tt K} after reading it, and
+hence is reduced the same way.  The {\tt req} component represents the
+requests being obtained from outside:  in  case the concrete  protocol
+files can only contain one message ({\tt last  = 1}, the {\tt req} is
+{\tt  ONE},  otherwise {\tt   MANY}.
+
+Finally, the {\tt  data\_is\_safe} component represents  the condition
+used in the  {\tt automaton} when a message  is indicated {\tt IND} to
+the environment   as  transmitted: the {\tt  rpc(s)}   is  the program
+counter of the   receiver, and its value {\tt   SI} stands  for  ``send
+indication'' --  the  data indicated  to  the environment  must  be the
+current one in {\tt afile}.
+
+
+\section{The Abstraction Proof}
+
+We shall  now apply theorem~\ref{theorem-abstraction}, recalling that
+this  theorem was defined  in the context  of  a concrete system $S_c$
+({\tt  protocol}   in  our  case),  an  abstract  system   $S_a$ ({\tt
+abstract\_protocol})  and  an  abstraction  mapping  $h$  ({\tt  abs})
+between    the  two.   Appendices~\ref{app-abstract-tactics},    
+\ref{app-abstract-scripts}, \ref{app-abstract-status} and 
+\ref{app-abstract-depend}  contain  listings of the  proof tactics, 
+the proof scripts, status of lemmas,  and dependencies between lemmas.
+The   theorem we want to   prove  is the  correctness  of the concrete
+protocol:
+
+\begin{smallsession}
+  safety : THEOREM
+    AG(initial,transition)(safe)
+\end{smallsession}
+
+Theorem~\ref{theorem-abstraction} tells   us that it is sufficient  to
+prove this theorem for the abstract protocol (via model checking) plus
+the following 3 propositions corresponding to items 1--3 in the theorem:
+
+\begin{smallsession}
+  init_preserved : PROPOSITION
+    A.initial(abs(C.startstate))
+
+  transition_preserves : PROPOSITION
+    FORALL (s1,s2:C.State):
+      (I(s1) AND I(s2) AND C.transition(s1,s2))
+        IMPLIES  
+      A.transition(abs(s1),abs(s2))                      
+
+  property_preserved : PROPOSITION
+    FORALL (s:C.State): SAFE(abs(s)) IMPLIES SAFE(s)
+\end{smallsession} 
+
+Note in particular  how in proposition {\tt transition\_preserves}  it
+is stated that states are  reachable: they satisfy the predicate  {\tt
+I},  where  {\tt I} is  supposed to  be  an invariant of  the concrete
+protocol.  It   turns  out, that  in  order  to do the   proof of this
+proposition, we  need   to     assume some  properties    about    the
+infinite-state protocol, and these properties  are represented by {\tt
+I}. So we still have to prove {\em some} invariants about the concrete
+protocol,  though  fewer  than in  case   where no model checking  was
+applied. This is perhaps not surprising  if one considers the abstract
+finite-state protocol  basically   to deal  with  control  only:  the
+infinite data behavior is left for us to deal with using the deductive
+capability   of PVS, and  this  necessarily has to  take  place in the
+context of the concrete protocol.
+
+It turns out that  the  invariant {\tt  I} needed for  the abstraction
+proof  is contained in the invariant   we have already proven.  Hence,
+practically speaking,   the proof of  {\tt  transition\_preserves} was
+created by importing the original  proof, in which  {\tt I} was proven
+to be an invariant of  the  concrete protocol,  and then defining  the
+needed invariants as consequences of {\tt I}. A special purpose theory
+was created for this, which is then used in the abstraction proof:
+
+\begin{smallsession}
+  protocol_lemmas : THEORY
+  BEGIN
+    IMPORTING protocol_safe
+
+    st : VAR State
+
+    a_spc_1(st):bool =
+      spc(st)=SC IMPLIES rpc(st)=WF
+
+    a_safe_4(st):bool =
+      (spc(st)=SC AND head(st)=last AND rn(st)/=0) 
+        IMPLIES 
+      (ahead(st)=last OR ahead(st)=nil)
+
+    a_safe_7(st):bool =
+      rpc(st)=SI IMPLIES ahead(st)/=nil
+
+    a_safe_8(st): bool = 
+      rpc(st) = SI IMPLIES data(msg(st)) = afile(st)(ahead(st))
+
+    a_safe_9(st):bool =
+      rpc(st) = SI IMPLIES 
+        ((last(msg(st))=(ahead(st)=last)) AND (first(msg(st))=afirst(st)))
+
+    I_spc_1  : LEMMA I IMPLIES a_spc_1
+    I_safe_4 : LEMMA I IMPLIES a_safe_4
+    I_safe_7 : LEMMA I IMPLIES a_safe_7
+    I_safe_8 : LEMMA I IMPLIES a_safe_8
+    I_safe_9 : LEMMA I IMPLIES a_safe_9
+  END protocol_lemmas
+\end{smallsession}
+
+The proof  of the four  propositions  is now carried  out as  follows.
+Propositions {\tt init\_preserved}  and {\tt  property\_preserved} are
+trivial  to prove: {\tt  (grind)} does  it automatically.  Proposition
+{\tt transition\_preserves} is the  complicated one to prove. First we
+define two auxiliary functions; each  carrying out the subproof needed
+for a single pair of  transition rules: a concrete one  {\tt C} and an
+abstract one {\tt A}.
+
+\begin{smallsession}
+  preserves(C:[C.State->C.State],A:[A.State->A.State]):bool =
+    FORALL (s1,s2:C.State):
+      (I(s1) AND I(s2) AND s2 = C(s1))
+        IMPLIES  
+      abs(s2) = A(abs(s1))
+
+  c_preserves(p:pred[C.State])
+             (C:[C.State->C.State],A:[A.State->A.State]):bool =
+    FORALL (s1,s2:C.State):
+      (I(s1) AND I(s2) AND p(s1) AND s2 = C(s1))
+        IMPLIES
+      abs(s2) = A(abs(s1))
+\end{smallsession}
+
+The function  {\tt preserves} states  that: for all reachable concrete
+states {\tt s1} and {\tt s2}, if {\tt s2} can be reached from {\tt s1}
+via the rule {\tt C}, then the rule {\tt A} connects the corresponding 
+abstracted states. The rule {\tt c\_preserves} (conditional version) takes an
+extra parameter: a condition {\tt p} that is assumed to hold in the 
+beginning state {\tt s1}. It is shown below how this is used; the following
+lemmas are examples of lemmas needed to prove {\tt transition\_preserves}:
+
+\begin{smallsession}
+  write_K_preserves : LEMMA
+    preserves(C.Rule_write_K,A.Rule_write_K)
+
+  stimer1_preserves1 : LEMMA
+    c_preserves(LAMBDA (s:C.State):rn(s)=max)
+               (C.Rule_stimer1,A.Rule_stimer1_QUIT)
+
+  stimer1_preserves2 : LEMMA
+    c_preserves(LAMBDA (s:C.State):rn(s)/=max)
+               (C.Rule_stimer1,A.Rule_stimer1_RETRY)
+\end{smallsession}
+
+The  first  lemma states that if  {\tt  C.Rule\_write\_K} connects two
+concrete reachable states,   then  {\tt A.Rule\_write\_K}  connects  the
+corresponding  abstracted  states.     For   the concrete    rule {\tt
+C.Rule\_stimer1} there are two abstract rules that together simulate it
+at the abstract level: the rule {\tt A.Rule\_stimer1\_QUIT} simulates it
+in the  case where  the   maximum number of  retransmissions has  been
+reached ({\tt rn(s)=max}),  while the rule  {\tt A.Rule\_stimer1\_RETRY}
+simulates it in the opposite case -- a message is retransmitted.
+
+It took two weeks to define the abstract  protocol and the abstraction
+mapping,  and  to carry   out   the proof of    the main  lemma:  {\tt
+transition\_preserves}.  It takes about an  hour and  a half to  rerun
+the proof of this  lemma.  However, this lemma  again uses a number of
+invariants about    the concrete  protocol;   we need  45  of  the  58
+invariants     invented  in    the    original   invariant  proof   in
+chapter~\ref{theorem-proving}.   Considering the extra two-week effort
+in carrying  out  this abstraction proof,  one  may  conclude that  no
+essential  work effort  has    been saved by  doing   the  abstraction
+proof+model  checking instead of  the pure invariant proof.  We claim,
+however,    that  the abstraction gives  a    good intuition about the
+functioning of the protocol, since it focuses on control.  Also, it is
+likely that many of the prior invariance proofs can also be proved via
+abstraction and model checking.
+
+The final proof obligation ({\tt invariant}) is proved
+by means of model checking.  Using the PVS command {\tt model-check}, 
+this lemma is proved in  36.7 minutes.
+
+Our initial experiences in applying the PVS model checker to this  
+example  were not satisfactory.   This led  us  to reformulate  the
+abstract protocol in \Murphi{} and in the CTL 
+model checker  SMV, in order to compare execution  times.  The next
+chapter presents the results.
+

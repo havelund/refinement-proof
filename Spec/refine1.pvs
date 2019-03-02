@@ -1,0 +1,68 @@
+
+Refinement1[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  S  : THEORY = Garbage_Collector [NODES,SONS,ROOTS]
+  I1 : THEORY = Garbage_Collector1[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector1_Inv[NODES,SONS,ROOTS]
+
+  s     : VAR I1.State
+  r1,r2 : VAR (I)
+  n,k   : VAR Node
+  i     : VAR Index
+  cs    : VAR Colours
+
+  abs(s):S.State = M(s)
+
+  sim_mutate : LEMMA
+    (EXISTS n,i,k: r2 = Rule_mutate(n,i,k)(r1)) IMPLIES
+      (EXISTS n,i,k: abs(r2) = Rule_mutate(n,i,k)(abs(r1))) OR
+      abs(r2) = abs(r1)
+
+  sim_colour_target : LEMMA
+    r2 = Rule_colour_target(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_stop_colouring : LEMMA
+    r2 = Rule_stop_colouring(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_colour : LEMMA
+    (EXISTS n: r2 = Rule_colour(n)(r1)) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_stop_appending : LEMMA
+    r2 = Rule_stop_appending(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_continue_appending : LEMMA
+    r2 = Rule_continue_appending(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_black_to_white : LEMMA
+    r2 = Rule_black_to_white(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_append_white : LEMMA
+    r2 = Rule_append_white(r1) IMPLIES
+      (EXISTS n: abs(r2) = Rule_append(n)(abs(r1))) OR abs(r2) = abs(r1)
+
+  next_h : LEMMA 
+    next(r1,r2) IMPLIES next(abs(r1),abs(r2))
+
+  R1 : THEORY = 
+    Refinement[S.O_State,
+      S.State,S.init,S.next,S.proj,
+      I1.State,I1.init,I1.next,I1.proj,
+      abs,I]      
+
+END Refinement1
+

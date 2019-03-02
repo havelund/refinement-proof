@@ -1,0 +1,316 @@
+
+\chap{Model Checking the Abstraction in Other Systems}{modelcheck-abstract}
+
+Initial experiences with applying the model checker embedded in PVS to
+the theorem  {\tt invariant} were  not satisfactory.  In fact, we
+had a version  of the {\tt  AG} operator together with  an unfortunate
+formulation  of  the transition   relation   that prevented the  model
+checker  from returning within  reasonable  time.  This fact  combined
+with the fact   that the original  protocol was  verified in \Murphi{}
+within minutes  (chapter~\ref{murphi}) lead  us to try out the example
+in  two other model checkers  to see if they  were doing better -- one
+based  on simple state exploration: \Murphi{}  and one based on BDD's:
+SMV.  That is, in each of these systems we formulated the finite-state
+abstraction of the protocol, and then verified it's correctness.  This
+chapter reports on our experiences.  The  full formal texts associated
+with this chapter are contained in appendix~\ref{app-other-systems}.
+
+\section{Murphi}\label{modelcheck-abstract-murphi}
+
+We have   already  explained how   \Murphi{} works.  In   principle we
+hand-translated the abstract PVS  protocol into \Murphi,  in practice,
+we      modified    the  \Murphi{}-program    already    existing (see
+appendix~\ref{app-murphi}  for the  already existing \Murphi-program).
+The    full formal   new       \Murphi{}-program is   contained     in
+appendix~\ref{app-abstract-murphi}. Some of this  new program is shown
+here:
+
+\begin{alltt}
+  Type
+    File : Enum\{NONE,ONE,MANY\}; 
+    Msg  : Record first, last, toggle : boolean End;
+  Var
+    K : Msg;
+    afile  : boolean;
+    data_is_safe : boolean;
+    req : File;
+    file : File;
+    rn : boolean;
+  ...
+
+  Rule "write_K"
+    spc = SF &
+    !K_full
+      ==>
+    K_full := true;
+    K.first := sfirst;
+    K.last := (file=ONE);
+    K.toggle:= stoggle;
+    spc:= WA;
+    rn := true;
+    stimer1_on := true;
+  End;
+  ...
+\end{alltt}
+
+\Murphi{} explored 22.432  states, with 74.626 rules fired in
+28,51 seconds.   This is  very   fast, and compared  with the  initial
+mu-calculus  results it  revealed  an  interesting issue:  the  simple
+techniques  behind  \Murphi{} were  superior   to  a BDD-based  model
+checker.  \Murphi{}  has the  characteristics that it  uses an explicit
+(not symbolic) representation of the state space and only explores the
+reachable  states, while the mu-calculus  checker explores all states,
+if not guided in a way that we later discovered.
+
+
+\section{SMV}
+
+The SMV system \cite{McMil:SMV} is a  tool for checking finite-state systems
+against specifications  in the  temporal logic  CTL.   It is  based on
+(O)BDD's. We regard it as the ``800  pound gorilla'' we can't get around
+(as Shankar puts it) within model checking, hence it's importance as a
+test-ground for our example is obvious.
+
+The  system is designed   to   allow the description  of  asynchronous
+systems as well as synchronous systems.   Our protocol is asynchronous
+in the sense that in  each step exactly  one  action with a  satisfied
+pre-condition is chosen and  then executed (interleaved), and only the
+variables  modified by that action  are modified. Communication is via
+shared variables: in one step a process writes  to a variable, and in
+a later  step another process  reads this variable.   In a synchronous
+system on the other hand, all variables are modified in each execution
+step: the  program is conceptually one  big parallel assignment to all
+variables,  and execution is  the repeated  execution of this parallel
+assignment.  The  synchronous  model is suited  for  modeling hardware
+circuits where  execution often is controlled by  a  single clock. One
+gets the feeling that  the  SMV system  was originally developed  with
+synchronous circuits as  target, hence we  had to give some thought as
+to  how  to model our   asynchronous system   in SMV,  especially  the
+modeling of pre-conditions.  However, once we found the ``formula'', the
+representation  was straight forward, and not  very different from the
+corresponding \Murphi-program.
+
+Only finite  data types are  allowed: booleans,  scalars (enumerated),
+records  and   fixed arrays.  The   CTL  logic allows  one  to specify
+properties  such  as safety,    liveness,  fairness and  freedom  from
+deadlock.   SMV  allows   a  completely general   way   of  defining a
+transition relation  (the ``TRANS'' construct for  the reader  who knows
+SMV), as  the mu-calculus, but  it also has  restricted constructs, the
+use of which prevents certain inconsistencies to  be introduced. As we
+shall see we use the general approach to define our pre-conditions and
+the restricted approach to define the effects on the state.
+
+The     full    formal     SMV   program     is       contained     in
+appendix~\ref{app-abstract-smv}.  Let  us   illustrate  part  of  this
+program. A SMV  program consists of a set  of modules, one of which is
+the main  module  (to be shown   later).  A module is  an encapsulated
+collection of declarations.  First, we  introduce  (part of) the  {\tt
+state} module,  which introduces   all  the  global variables   of the
+program.  Modules  are also used to represent  records as  is the case
+with {\tt Msg}:
+
+\begin{alltt}
+  MODULE Msg
+  VAR
+    first : boolean;
+    last : boolean;
+    toggle : boolean;
+\end{alltt}
+
+\begin{alltt}
+  MODULE state
+  VAR
+    K : Msg;
+    req : \{NONE,ONE,MANY\};
+    file : \{NONE,ONE,MANY\};
+    rn : boolean;
+    afile  : boolean;
+    data_is_safe : boolean;
+    SAFE : boolean;
+    ...
+  INIT
+      K.first = 0
+    & K.last = 0
+    & K.toggle = 0
+    & req in \{ONE,MANY\}
+    & file = NONE
+    & rn = 0
+    & data_is_safe = 1
+    & afile = 0
+    & SAFE = 1
+    ...
+\end{alltt}
+
+The {\tt  VAR} section  introduces all  the variables,  while the {\tt
+INIT} section defines  their   initial values;  booleans  in  SMV  are
+represented by the  type {\tt \{0,1\}}.  Note that  we have introduced
+the  variable  {\tt   SAFE}, just   as   we  have  done    in the  PVS
+specifications. This variable is manipulated by the automaton, and the
+correctness criteria  will be that this  variable is always true. This
+variable was  not necessary in  the \Murphi{}-program due to  the {\tt
+assert} construct available there.
+
+The {\tt state} type can be conceived as a {\em passive} module in the
+sense that it only introduces  variables and no description of dynamic
+behavior. The rest of the  modules describe this dynamic behavior, one
+module  for each rule in \Murphi.  As  an example  we  show the module
+corresponding   to    the {\tt    write\_K}     rule in the   previous
+section~\ref{modelcheck-abstract-murphi}:
+
+\begin{alltt}
+  MODULE write_K(s)
+  TRANS
+    running ->
+    s.spc = SF &
+    !s.K_full
+  ASSIGN
+    next(s.K_full) := 1;
+    next(s.K.first) := s.sfirst;
+    next(s.K.last) := (s.file=ONE);
+    next(s.K.toggle) := s.stoggle;
+    next(s.spc) := WA;
+    next(s.rn) := 1;
+    next(s.stimer1_on) := 1;
+\end{alltt}
+
+The state is passed as parameter to the module, we see in a moment how
+it is instantiated.  All references to this  state are by dot-notation
+(ex: {\tt s.spc}).  The module is divided into  two sections.  The {\tt
+ASSIGN} section describes the effect of the rule on the state: it is a
+parallel  assignment statement,   where {\tt next(id)}   refers to the
+value of the   variable {\tt id}  in  the  next state.    The parallel
+assignment can then be  regarded as a set of  equations that must hold
+between   the current state and the    next state.  To illustrate this
+further, the next-operator can  even occur on  the right hand sides of
+these assignments (equations). This latter trick we  have in fact used
+to  model the \Murphi{}-program as closely  as  possible: in \Murphi{}
+the effect of a  rule is  a  {\em sequentially} evaluated sequence  of
+assignments, one assignment  is evaluated at a  time, hence the value
+(in the next state) of an already assigned variable may be referred to
+on the right hand side of a later assignment.
+
+The {\tt ASSIGN} section  is an example of  the restricted language of
+SMV in which one can write a predicate on the current-state/next-state
+in a safe way. In general, after the {\tt  TRANS} keyword, any boolean
+expression    may   be  written    that   constrains   such  pairs  of
+current-state/next-state:  any  current/next   state pair   is in  the
+transition relation only if the value of  this expression is true.  In
+our case the {\tt TRANS} expression describes the pre-condition of the
+rule: with each module follows  an  implicitly declared variable  {\tt
+running},  which will be true whenever  the module (rule) is executed.
+The  expression then  says  that whenever  the  rule is executed,  the
+pre-condition {\tt s.spc  = SF \& !s.K\_full} holds;  {\tt ->} is  the
+`implies'  operator.  Hence  this   expression only  refers to   the
+current state of each current-state/next-state pair, which effectively
+means that it must be true in all states.
+
+We   mentioned that  the   {\tt  SAFE}  variable  is  modified  by the
+automaton.  Since procedures are not  available in  SMV, we must  code
+the  effects  of the  automaton directly   where they  are  needed, as
+illustrated by  the following rule that  reads a  new request from the
+environment:
+
+\begin{alltt}
+  MODULE read_req(s) 
+  TRANS 
+    running -> 
+    s.spc = WR & 
+    s.req_full
+  ASSIGN
+    next(s.req_full) := 0;
+    next(s.file) := s.req;
+    next(s.spc) := SF;
+    -- automaton
+    next(s.SAFE) := !s.abusy;
+    next(s.abusy) := 1;
+    next(s.afile) := 1;
+\end{alltt}
+
+The main module declares the state, instantiates all the rules,
+and states the correctness criteria:
+
+\begin{alltt}
+  MODULE main
+  VAR
+    s   : state; 
+    write_req       : process write_req(s);
+    read_conf       : process read_conf(s);
+    read_ind        : process read_ind(s);
+    read_ind_error  : process read_ind_error(s);
+    lose_msg        : process lose_msg(s);
+    lose_ack        : process lose_ack(s);
+    read_req        : process read_req(s);
+    write_K         : process write_K(s);
+    read_L_MANY     : process read_L_MANY(s);
+    read_L_ONE      : process read_L_ONE(s);
+    write_conf      : process write_conf(s);
+    stimer1_QUIT    : process stimer1_QUIT(s);
+    stimer1_RETRY   : process stimer1_RETRY(s);
+    stimer2         : process stimer2(s);
+    read_K          : process read_K(s);
+    write_ind       : process write_ind(s);
+    write_L         : process write_L(s);
+    write_ind_error : process write_ind_error(s);
+    rtimer          : process rtimer(s);
+  SPEC
+    AG s.SAFE
+\end{alltt}  
+
+The  state {\tt s}   is declared as  an instance   of the  {\tt state}
+module, and is passed as parameter to all  the rule modules.  For each
+rule  module,  a variable  (with the  same name) is   declared to be a
+process instance of it  using the keyword  {\tt process}. The  program
+executes  a  step by  non-deterministically  choosing a  process, then
+executing   all  of  the assignment   statements   in that  process in
+parallel. By  default, all  of   the assignment statements  in  an SMV
+program are executed in  parallel and simultaneously, but processes on
+the other hand are executed interleaved.
+
+It is implicit  that if a given variable  is not assigned by
+the process,  then its value  remains  unchanged.  Each instance  of a
+process has associated the variable {\tt  running}, the value of which
+is   {\tt  1} if  the   process  instance  is   currently selected for
+execution. Note how the {\tt TRANS} statements restricts the choice of
+processes by relating   pre-conditions to   the values of    the {\tt
+running} variables. 
+
+The correctness criteria is  defined as  a  CTL formula  following the
+keyword {\tt SPEC}. It states that for all paths ({\tt A}), and for all
+states along such a path ({\tt G}), the variable {\tt s.SAFE} must be
+true.
+
+The  modeling of the  protocol  in SMV was   straight forward once the
+schema for how to do was layed out. One slightly annoying thing in SMV
+is though the lack of a conditional statement construct, there is only
+a conditional  expression   construct, expressions  being   the objects
+occurring on the right hand sides of  assignments. Also procedures and
+type declarations are missing in SMV.
+
+When we apply the  SMV model checker to  the  example, it uses  9308
+seconds (2.5 hours) to verify it, allocating 1.210.892 BDD nodes. 
+
+It  is, however, possible to activate  SMV using an  option `-f', with
+the  result that only reachable   states are examined.  This gives  an
+impressive improvement in efficiency: 24  seconds only, and 29.132 BDD
+nodes allocated.  With respect to time  this is an  improvement with a
+factor nearly 400.  
+
+
+\section{Conclusion}
+
+The main    source of efficiency  in \Murphi{}   with respect  to this
+example  is that it  only  explores  the  reachable states.  Also  the
+experiment with SMV demonstrated     the importance of  focusing    on
+reachable  states, using option  `-f'.  Our  initial definition of the
+{\tt  AG}  operator was such  that  it explored  all those states that
+could potentially lead to a state  violating the invariant in order to
+check if these states included the  start state.  Obviously, many more
+states     were  explored  in       this  manner.     The  mu-calculus
+\cite{Jan:Mu-calculus} has recently  been extended with a reachability
+option (like option `-f' in SMV), which is expected to be incorporated
+into PVS.  This should further improve the PVS model checker.
+
+
+
+
+

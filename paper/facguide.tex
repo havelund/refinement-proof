@@ -1,0 +1,651 @@
+% FACGUIDE.TEX
+% Copyright (C) 1991 Cambridge University Press
+% Version 1.00, released 27 September 1991
+
+% The following macros define symbols to be used in Table 1 of
+% the authors' guide, using characters from AMS founts.
+% If you have access to AMS founts, uncomment the
+% first three paragraphs at the beginning of this file, i.e.
+% "\font\fivemsx..." to "...\def\whwh{\white\kern-1pt--\white}"
+% and the first 4 entries of the table.
+
+\documentstyle{fac}
+
+% \font\fivemsx=msxm10 at 5pt
+% \newfam\msxfam
+% \textfont\msxfam=\fivemsx
+% \def\hexnumber@#1{\ifcase#1 0\or1\or2\or3\or4\or5\or6\or7\or8\or9\or
+% 	A\or B\or C\or D\or E\or F\fi }
+% \edef\msx@{\hexnumber@\msxfam}
+
+% \mathchardef\blacktriangleright="3\msx@49
+% \mathchardef\vartriangleright="3\msx@42
+
+% \def\black{\raisebox{.2ex}{$\blacktriangleright$}}
+% \def\white{\raisebox{.2ex}{$\vartriangleright$}}
+% \def\whbl{\white\kern-1pt--\black}
+% \def\blwh{\black\kern-1pt--\white}
+% \def\blbl{\black\kern-1pt--\black}
+% \def\whwh{\white\kern-1pt--\white}
+
+\def\eg{{\it e.g.\ }}
+\def\etc{{\it etc}}
+\def\visiblespace{\leavevmode\hbox{\tt\char`\ }}
+\def\LaTeX{L\kern-.36em\raise.3ex\hbox{a}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}
+
+\newtheorem{theorem}{Theorem}[section]
+
+\title[Formal Aspects of Computing: \LaTeX\ Submissions]
+      {Formal Aspects of Computing:\\
+       \LaTeX\ Style Guide for Authors}
+
+\author[C. Notarmarco and R. Mulvey]
+    {Christiane Notarmarco$^1$ and Rod Mulvey$^2$\\
+      $^1$Springer-Verlag London Limited, Springer House,
+      Wimbledon, SW19 7JZ, UK; $^2$\TeX-to-type,\\
+      Cambridge University Press, Shaftesbury Road,
+      Cambridge, CB2 2BS, UK}
+
+\correspond{Christiane Notarmarco, Springer-Verlag London
+            Limited, Springer House, 8 Alexandra Road,
+            Wimbledon, London, SW19 7JZ, UK.}
+
+\date{September\/ \em 1991}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+
+\begin{document}
+\label{firstpage}
+
+\makecorrespond
+\maketitle
+
+\begin{keywords}
+\LaTeX; Style files; \verb"fac.sty"; Sample text; User guide
+\end{keywords}
+
+\begin{abstract}
+This guide is for authors who are preparing papers for
+{\em Formal Aspects of Computing\/} using the \LaTeX\ document
+preparation system and the FAC style file.
+\end{abstract}
+
+\section{Introduction}
+
+In addition to the standard submission of hard-copy from authors,
+{\em Formal Aspects of Computing\/} accepts machine-readable forms of
+papers in \LaTeX.
+The layout design for {\em Formal Aspects of Computing\/} has been
+implemented as a \LaTeX\ style file.
+The FAC style is based on the \verb"ARTICLE" style as discussed in the
+\LaTeX\ manual \cite{Lam:LaTeX}.
+Commands which differ from the standard \LaTeX\ interface, or which are
+provided in addition to the standard interface, are explained in this
+guide. This guide is not a substitute for the \LaTeX\ manual itself.
+Authors planning to submit their papers in \LaTeX\ are advised to use
+\verb"fac.sty" as early as possible in the creation of their files.
+
+\subsection{Introduction to \LaTeX}
+
+\LaTeX\ is constructed as a series of macros on top of the \TeX\
+typesetting program.
+\LaTeX\ adds to \TeX\ a collection of facilities which simplify typesetting
+for authors by allowing them to concentrate on the logical structure of the
+document rather than its visual layout.
+Careful use of the \LaTeX\ mark-up philosophy results in uniform
+layout rather than the {ad hoc} results of some word-processing systems.
+Authors are advised to let the defaults control fount selection, \etc.\
+rather than tinker themselves.
+
+\LaTeX\ provides a consistent and comprehensive document preparation
+interface. There are macros for generating a table of contents,
+lists of figures and/or tables;
+\LaTeX\ can automatically number list entries, equations, figures, tables,
+and footnotes, as well as parts, sections and subsections.
+Using this numbering system, bibliographic citations, page references and
+cross references to any other numbered entity (\eg sections, equations,
+figures, list entries) are straightforward.
+
+\subsection{The FAC Document Style}
+
+The use of document styles allows a simple change of style (or style
+option) to transform the appearance of your document.
+The Springer-Verlag London Limited (SVL) FAC style file preserves the
+standard \LaTeX\ interface such that any document which can be produced
+using the standard \LaTeX\ \verb"ARTICLE" style, can also be produced with
+the FAC style.
+However, the measure (or width of text) is wider than the default for
+\verb"ARTICLE" therefore line breaks will change and long equations may
+need re-setting.
+Authors are urged to use \verb"fac.sty" from the beginning of their
+document preparation; in particular, they are advised not to use wider
+measures as given by \verb"a4.sty", \etc.\ because this will involve
+changes after they think their submissions are technically accurate.
+
+\subsection{General Style Issues}
+
+Use of \LaTeX\ defaults will result in a pleasing uniformity of layout
+and fount selection. Authors should resist the temptation to make
+{\em ad hoc\/} changes to these.
+Whether using the default founts or not, displayed mathematics should
+be set in a distinct fount from running text and the same fount should
+be used where formulae occur in running text.
+In addition to the standard \TeX\ and \LaTeX\ founts, authors can use the
+AMS {\em msxm\/} and {\em msym\/} founts.  The AMS {\em msym\/}
+founts have been used in Table~\ref{symbols} to define some of the characters in the first four lines.
+
+The final makeup will use Times Roman founts and if these are
+available to authors (\eg via PSLaTeX) they should be employed in order
+to ensure good use of space (they are in general more economical than
+computer modern founts).
+
+For general style issues, authors are referred to the `Instructions for
+authors' in the FAC journal. Authors who are interested in the detail of style
+are referred to \cite{But:Copy} and \cite{Chicago}. The language of the
+journal is British English and spelling should conform to this.
+
+Use should be made of symbolic references (\verb"\ref") in order to
+protect against late changes of order, \etc.
+
+\subsection{Submission of \LaTeX\ Articles to the Journal}
+
+Authors who intend to submit a \LaTeX\ article to FAC should obtain a
+copy of the journal's style file \verb"fac.sty". This is available on
+request in the first instance from  Springer-Verlag London Limited; remember to
+specify the type of media you require. Alternatively, you can download
+the file from the Aston \TeX\ archive at \verb"uk.ac.tex" on JANET. The files
+\verb"fac.sty" and \verb"facguide.tex" will be found in the directory
+\verb"[TEX-ARCHIVE.LATEX.CONTRIB.PUBLICATIONS]". If you
+cannot obtain the journal style file, use \verb"ARTICLE" style.
+
+When submitting the final article, ensure that  the following are included:
+\begin{enumerate}
+ \item Hardcopy printout of the article;
+ \item The input file;
+ \item A copy of all user-defined macros;
+ \item Bibliography files, or if you have used BIB\TeX, the \verb".bib"
+                 and \verb".bbl" files;
+ \item Any other files necessary to prepare the article
+           for typesetting.
+\end{enumerate}
+The files for the {\em final\/} article should be text-only with no
+system dependent control codes. Submit this, if at all possible, by
+e-mail over JANET, and the hardcopy by post to D.\,J. Cooke (see the
+inside-cover of the journal for correct e-mail and postal addresses).
+If you do not have access to e-mail, send the files on disc -- PC $5
+{1\over4\,}$in.\ or Apple $3 {1\over 2\,}$in.\ -- along with the hard copy to D.\,J. Cooke.
+
+\section{Using the FAC Style}
+
+First, copy the file \verb"fac.sty" into an appropriate subdirectory on
+your system.
+The FAC document style is implemented as a complete document style {\em
+not\/} a document style option.
+In order to use the FAC style, replace \verb"article" by \verb"fac" in the
+\verb"\documentstyle" command at the beginning of your document:
+%
+\begin{verbatim}
+  \documentstyle{article}
+\end{verbatim}
+is replaced by,
+\begin{verbatim}
+  \documentstyle{fac}
+\end{verbatim}
+%
+In general, the following standard document style options should {\em
+not\/} be used with the FAC style:
+%
+\begin{itemize}
+  \item {\tt 10pt}, {\tt 11pt}, {\tt 12pt} -- unavailable.
+  \item {\tt draft}, {\tt twoside} (no associated style file) -- {\tt
+     twoside} is the default.
+  \item {\tt fleqn}, {\tt leqno}, {\tt titlepage}, {\tt twocolumn} --
+        should not be used (\verb"fleqn" is already incorporated into
+        the FAC style).
+\end{itemize}
+%
+However, {\tt proc}, {\tt ifthen}, {\tt bezier} -- can be used if
+necessary.
+
+\section{Additional Facilities}
+
+In addition to all the standard \LaTeX\ design elements, the FAC style
+includes the following features:
+%
+\begin{itemize}
+  \item Extended commands for specifying a short version of the title and
+        author(s) for the running headlines.
+  \item \verb"\correspond" and \verb"\makecorrespond" commands for printing
+     the name and address for further correspondence.
+  \item A \verb"keywords" environment.
+  \item A \verb"proof" environment.
+  \item Control of enumerated lists.
+\end{itemize}
+%
+In general, once you have used the additional \verb"fac.sty"
+facilities in your document, do not process it with a standard \LaTeX\
+style file.
+
+\subsection{Titles and Author's Name}
+
+In the FAC style, the title of the article and the author's name (or
+authors' names) are used both at the beginning of the article for the main
+title and throughout the article as running headlines at the top of every
+page.
+The title is used on odd-numbered pages (rectos) and the author's name
+appears on even-numbered pages (versos).
+Although the main heading can run to several lines of text, the running
+head line must be a single line.
+Moreover, the main heading can also incorporate new line commands
+(\eg \verb"\\") but these are not acceptable in a running headline.
+To enable you to specify an alternative short title, which should not be
+more than 48 characters and spaces, and an alternative short author's name,
+the standard \verb"\title" and \verb"\author" commands have been extended
+to take an optional argument to be used as the running headline:
+%
+\begin{verbatim}
+ \title[Formal Aspects of Computing: \LaTeX\ submissions]
+        {Formal Aspects of Computing:\\
+        \LaTeX\ Style Guide for Authors}
+\end{verbatim}
+and,
+\begin{verbatim}
+  \author[C. Notarmarco and R. Mulvey]
+    {Christiane Notarmarco$^1$ and Rod Mulvey$^2$\\
+      $^1$Springer-Verlag London Limited, Springer House,
+      Wimbledon, SW19 7JZ, UK; $^2$\TeX-to-type,\\
+      Cambridge University Press, Shaftesbury Road,
+      Cambridge, UK}
+\end{verbatim}
+
+You may wish to add a \verb"\thanks" note, which produces a footnote to the
+title or author. In the latter case, the superscripts by the authors' names
+will be automatically generated.
+
+\subsection{Correspondence Note}
+
+The footnote at the bottom of the first page is generated automatically,
+and begins with the words {\it Correspondence and offprint
+requests to\/{\rm:\visiblespace }}.
+The appropriate name and address must be given as an argument to the macro
+\verb"\correspond" in the preamble:
+%
+\begin{verbatim}
+  \correspond{Christiane Notarmarco, Springer-Verlag
+              London Limited, Springer House, 8 Alexandra
+              Road, Wimbledon, London, SW19 7JZ, UK.}
+\end{verbatim}
+%
+This information is subsequently used by the command
+\verb"\makecorrespond". This may be placed anywhere
+after \verb"\begin{document}"  within the text of the first page. If you
+have other footnotes on the first page, \verb"\makecorrespond" should
+follow them so as to make {\em Correspondence and \ldots} print at the foot
+of the page.
+
+If you omit the \verb"\correspond" and \verb"\makecorrespond" commands,
+the name in the correspondence note defaults to the short author's name.
+
+\subsection{Keywords and Abstracts}
+
+At the beginning of your article, the title should be generated in the
+usual way using the \verb"\maketitle" command. Immediately following the
+title you should include a list of keywords followed by an abstract. For
+example, the titles for this guide were produced by the following source:
+%
+\begin{verbatim}
+  \maketitle
+  \begin{keywords}
+    \LaTeX; Style files; \verb"fac.sty"; Sample text;
+    User guide
+  \end{keywords}
+
+  \begin{abstract}
+    This guide is for authors who are preparing papers
+    for {\em Formal Aspects of Computing\/} using the
+    \LaTeX\ document preparation system and the FAC style
+    file.
+  \end{abstract}
+
+  \section{Introduction}
+  ...
+\end{verbatim}
+The abstract is automatically followed by a 12~pica rule.
+
+\subsection{Proofs}
+
+The \verb"proof" environment has been added to the standard \LaTeX\
+constructs to provide a consistent format for proofs.
+For example,
+%
+\begin{verbatim}
+  \newtheorem{theorem}{Theorem}[section]
+  ...
+  \begin{theorem}
+    $VS \Rightarrow FP$ for program {\em Multi-States}.
+  \end{theorem}
+  \begin{proof}
+    Noting that a state satisfying $VS$ has no elements
+    $V_{xi}$ of $V$ satisfying $0<V_{xi}<1$, it follows
+    that the proof is just as the proof was for the
+    corresponding case of {\em Bi-States}.
+  \end{proof}
+\end{verbatim}
+%
+produces the following text:
+%
+  \begin{theorem}
+    $VS \Rightarrow FP$ for program {\em Multi-States}.
+  \end{theorem}
+  \begin{proof}
+    Noting that a state satisfying $VS$ has no elements
+    $V_{xi}$ of $V$ satisfying $0<V_{xi}<1$, it follows
+    that the proof is just as the proof was for the
+    corresponding case of {\em Bi-States}.
+  \end{proof}
+
+\subsection{Lists}
+
+The FAC style provides the three standard list environments:
+\begin{itemize}
+  \item Numbered lists, created using the \verb"enumerate" environment.
+  \item Bulleted lists, created using the \verb"itemize" environment.
+  \item Labelled lists, created using the \verb"description" environment.
+\end{itemize}
+The enumerated list numbers each list item with an arabic numeral.
+Alternative styles can be achieved by inserting a redefinition of the
+number labelling command after the \verb"\begin{enumerate}".
+For example, a list numbered with roman numerals inside parentheses can be
+produced by the following commands:
+%
+\begin{verbatim}
+  \begin{enumerate}
+   \renewcommand{\theenumi}{(\roman{enumi})}
+   \item first item
+         :
+  \end{enumerate}
+\end{verbatim}
+%
+This produces the following list:
+%
+\begin{enumerate}
+  \renewcommand{\theenumi}{(\roman{enumi})}
+  \item first item
+  \item second item
+  \item \etc\ldots
+\end{enumerate}
+%
+In the last example, the labels were pushed out into the margin  because
+the standard list indentation is designed to be sufficient for arabic
+numerals rather than the longer roman numerals. In order to enable
+different labels to be used more easily, the \verb"enumerate" environment
+in the FAC style can be given an optional argument which (like a standard
+\verb"bibliography" environment) specifies the {\em widest label}. For
+example,
+%
+\begin{enumerate}[(iii)]
+\renewcommand{\theenumi}{(\roman{enumi})}
+  \item first item
+  \item second item
+  \item \etc\ldots
+\end{enumerate}
+%
+was produced by the following input:
+%
+\begin{verbatim}
+  \begin{enumerate}[(iii)]
+   \renewcommand{\theenumi}{(\roman{enumi})}
+   \item first item
+         :
+  \end{enumerate}
+\end{verbatim}
+
+\section{Some Guidelines for Using Standard Facilities}
+
+The following notes may help you achieve the best effects with the FAC
+style file.
+
+\subsection{Sections}
+
+\LaTeX\ provides five levels of section headings and they are all
+defined in the FAC style file:
+%
+\begin{itemize}
+  \item \verb"\section"
+  \item \verb"\subsection"
+  \item \verb"\subsubsection"
+  \item \verb"\paragraph"
+  \item \verb"\subparagraph"
+\end{itemize}
+%
+Section numbers are given for sections, subsection and subsubsection
+headings.
+
+\subsection{Running Headlines}
+
+As described above, the title of the article and the author's name (or
+authors' names) are used as running headlines at the top of every page.
+The \verb"\pagestyle" and \verb"\thispagestyle" commands should {\em not\/}
+be used. Similarly, the commands \verb"\markright" and \verb"\markboth"
+should not be necessary.
+
+\subsection{Illustrations (or Figures)}
+
+The FAC style will cope with most positioning of your illustrations and you
+should not normally use the optional positional qualifiers on the
+\verb"figure" environment which would override these decisions.
+See `Instructions for authors' in FAC journal for submission of artwork.
+Figure captions should be below the figure itself therefore the
+\verb"\caption"
+command should appear after the figure or space left for an illustration.
+For example, Figure~\ref{sample-figure} is produced using the following
+commands:
+%
+\begin{verbatim}
+  \begin{figure}
+     \centering
+     \vspace{5cm}
+     \caption{An example figure in which space has been
+              left for the artwork}
+     \label{sample-figure}
+  \end{figure}
+\end{verbatim}
+%
+  \begin{figure}
+     \centering
+     \vspace{5cm}
+     \caption{An example figure in which space has been
+              left for the artwork}
+     \label{sample-figure}
+  \end{figure}
+
+\subsection{Tables}
+\begin{table}
+  \caption{Index of Symbols}
+  \begin{tabular}{ll}
+   \hline
+   Symbol\hspace{1cm}  & Meaning \\
+   \hline
+%  \whbl               & \hbox{Forward closure} \\
+%  \blwh               & \hbox{Backward closure} \\
+%  \blbl               & \hbox{Overlap closure} \\
+%  \whwh               & \hbox{Rule closure} \\
+   $\leadsto$          & \hbox{Rule closure constructor} \\
+   $\bigtriangleup$    & \hbox{Substitution sum} \\
+   $\cdot$             & \hbox{Substitution composition} \\
+   $\sqcup$            & \hbox{Substitution join} \\
+   $\bot$              & \hbox{Coherence relation} \\
+   $-^n$               & \hbox{Substitution operator
+                                         (exponent)} \\
+   $W_n(-,-)$          & \hbox{Substitution operator
+                                         (Whale)} \\
+   $T_n(-,-,-)$        & \hbox{Substitution operator
+                                         (Turtle)} \\
+   \hline
+  \end{tabular}
+  \label{symbols}
+\end{table}
+
+The FAC style will cope with most positioning of your tables
+and you should not normally use the optional positional qualifiers on the
+\verb"table" environment which would override these decisions.
+Table captions should be at the top, therefore the \verb"\caption" command
+should appear before the body of the table.
+
+The \verb"tabular" environment should be used to produce ruled tables;
+it has been modified for the FAC style in the following ways:
+%
+\begin{enumerate}
+  \item Rules may either be two-thirds or the full width of a page,
+depending on the width of the material in your table. \verb"\hline"
+will produce a rule two-thirds the width and \verb"\fullhline" will
+produce a rule the full width of a page;
+  \item Additional vertical space is inserted on either side of a rule;
+  \item Vertical lines are not produced.
+\end{enumerate}
+%
+Commands to redefine quantities such as \verb"\arraystretch" should be
+omitted.
+For example, Table~\ref{symbols} is produced using the following
+commands:
+%
+\begin{verbatim}
+  \begin{table}
+    \caption{Index of Symbols}
+    \begin{tabular}{ll}
+     \hline
+     Symbol\hspace{1cm}  & Meaning \\
+     \hline
+   %  \whbl          & \hbox{Forward closure} \\
+   %  \blwh          & \hbox{Backward closure} \\
+   %  \blbl          & \hbox{Overlap closure} \\
+   %  \whwh          & \hbox{Rule closure} \\
+   $\leadsto$        & \hbox{Rule closure constructor} \\
+   $\bigtriangleup$  & \hbox{Substitution sum} \\
+     ...
+     $T_n(-,-,-)$    & \hbox{Substitution operator
+                                          (Turtle)} \\
+     \hline
+    \end{tabular}
+    \label{symbols}
+  \end{table}
+\end{verbatim}
+
+\subsection{Displayed Mathematics}
+
+The FAC style will set displayed mathematics with the correct indent
+provided you use the \LaTeX\ standard of open and closed square brackets
+as delimiters. The following equation
+  \[ \sum_{i=1}^p \lambda_i = {\rm trace}({\bf S}) \]
+was typeset in the FAC style using the commands:
+\begin{verbatim}
+  \[ \sum_{i=1}^p \lambda_i = {\rm trace}({\bf S}) \]
+\end{verbatim}
+Note the difference between the positioning of this equation and of
+the following centred equation
+  $$ \alpha_{j+1} > \bar{\alpha}+ks_{\alpha} $$
+which was (wrongly) typeset using double dollars as follows:
+\begin{verbatim}
+  $$ \alpha_{j+1} > \bar{\alpha}+ks_{\alpha} $$
+\end{verbatim}
+
+\subsection{Bibliography}
+
+References to published literature should be quoted in text by an
+abbreviation in square brackets of name(s) (three letters) and date (two
+digits). See examples below for style.
+This is consistent with the Bib\TeX\ bibliography style `\verb"alpha".'
+Where more than one reference is cited having the author(s) and date, the
+letters a,b,c, \ldots\ should follow the date (\eg [Smi88a], [Smi88b],
+\etc.). References should be listed in \verb"thebibliography" environment
+alphabetically by author(s)' name(s) and then by year if the same author
+has several papers.
+
+The following listing shows some references prepared in the style of the
+journal:
+%
+\begin{verbatim}
+  \begin{thebibliography}{Lam86}
+   \bibitem[But81]{But:Copy}
+   Butcher, J.:
+   {\em Copy-editing: The Cambridge Handbook.}
+   Cambridge University Press, 1981.
+
+   \bibitem[Chi69]{Chicago}
+   {\em The Chicago Manual of Style.}
+   University of Chicago Press, Chicago 60637, USA, 1982.
+
+   \bibitem[For84]{For:Program}
+   Forgaard, R.:
+   A Program for Generating and Analyzing Term Rewriting
+   Systems,
+   Master's Thesis, MIT Lab. for Computer Science, 1984.
+
+   \bibitem[JLR82]{Jou:Recursive}
+   Jouannaud, J. P., Lescanne, P. and Reinig, F.:
+   Recursive Decomposition Ordering,
+   {\em Proc.\ Conf. on Formal Description of Programming
+   Concepts II}, \,pp.\ 331--346, 1982.
+
+   \bibitem[Lam86]{Lam:LaTeX}
+   Lamport, L.:
+   {\em LaTeX: A Document Preparation System.}
+   Addison-Wesley, New York, 1986.
+
+   \bibitem[Ped85]{Ped:Obtaining}
+   Pederson, J.:
+   Obtaining Complete Sets of Reproductions and Equations
+   without Using Special Unification Algorithms.
+   Unpublished manuscript, 1985.
+
+   \bibitem[PeS81]{Pet:Complete}
+   Peterson, G. E. and Stickel, M. E.:
+   Complete Sets of Reductions for Some Equational
+   Theories. {\em J.\ ACM}, {\bf 28}, 223--264 (1981).
+  \end{thebibliography}
+\end{verbatim}
+%
+This produces the following references:
+%
+\begin{thebibliography}{Lam86}
+%
+\bibitem[But81]{But:Copy}
+Butcher, J.:
+{\em Copy-editing: The Cambridge Handbook.}
+Cambridge University Press, 1981.
+
+\bibitem[Chi69]{Chicago}
+{\em The Chicago Manual of Style.}
+University of Chicago Press, Chicago 60637, USA, 1982.
+
+\bibitem[For84]{For:Program}
+Forgaard, R.:
+A Program for Generating and Analyzing Term Rewriting Systems,
+Master's Thesis, MIT Lab. for Computer Science, 1984.
+
+\bibitem[JLR82]{Jou:Recursive}
+Jouannaud, J. P., Lescanne, P. and Reinig, F.:
+Recursive Decomposition Ordering,
+{\em Proc.\ Conf. on Formal Description of Programming Concepts
+II}, \,pp.\ 331--346, 1982.
+
+\bibitem[Lam86]{Lam:LaTeX}
+Lamport, L.:
+{\em LaTeX: A Document Preparation System.}
+Addison-Wesley, New York, 1986.
+
+\bibitem[Ped85]{Ped:Obtaining}
+Pederson, J.:
+Obtaining Complete Sets of Reproductions and Equations without Using
+Special Unification Algorithms. Unpublished manuscript, 1985.
+
+\bibitem[PeS81]{Pet:Complete}
+Peterson, G. E. and Stickel, M. E.:
+Complete Sets of Reductions for Some Equational Theories. {\em J.\ ACM},
+{\bf 28}, 223--264 (1981).
+%
+\end{thebibliography}
+
+\label{lastpage}
+
+\end{document}

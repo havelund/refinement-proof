@@ -1,0 +1,84 @@
+
+%\documentstyle[boxedminipage,alltt,psfig,epsf,pvs]{llncs}
+
+\documentclass{llncs}
+
+\usepackage{graphicx}
+\usepackage{boxedminipage,alltt,psfig,epsf,pvs}
+\input{pvstex}
+\input{preamble}
+
+\renewenvironment{smallsession}
+ {\begin{flushleft}%
+  \setlength{\hsbw}{\linewidth}%
+  \begin{boxedminipage}[b]{\hsbw}%
+  \begingroup\small%
+  \begin{alltt}}%
+ {\end{alltt}\endgroup\end{boxedminipage}\end{flushleft}}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\title{A Refinement Proof for a Garbage Collector}
+
+\author{ 
+Klaus Havelund\inst{2}\thanks{Part of the research performed by 
+his author was carried out at Jet Propulsion Laboratory, California 
+Institute of Technology, under a contract with the National Aeronautics 
+and Space Administration.}
+\and
+Natarajan Sjankar\inst{1}
+}
+
+\institute{
+Jet Propulsion Laboratory, \\
+California Institute of Technology, Pasadena, USA 
+\and
+Computer Science Laboratory,\\
+SRI International, Menlo Park, USA
+}
+
+% Klaus's original support:
+% -------------------------
+% Supported by a European Community HCM grant 
+% while working at LITP, Paris 6, France; and by the Danish BRICS project 
+% while working at Aalborg University. 
+
+% Shankar's original support:
+% ---------------------------
+% Supported by NSF Grant CCR-930044
+% and by ARPA through NASA Ames Research Center under Contract
+% NASA-NAG-2-891 (ARPA Order A721).
+
+
+\maketitle
+
+%\begin{keywords}
+%Garbage Collector;
+%Concurrency;
+%Program Verification;
+%State Transition Systems;
+%Refinement;
+%Theorem Proving; 
+%PVS. 
+%\end{keywords}
+
+\input{abstract}
+
+\input{intro}
+\input{transition-systems}
+\input{algorithm}
+\input{refinement-steps}
+\input{discussion}
+
+\bibliographystyle{alpha}
+\bibliography{biblio}
+
+\appendix
+\input{pvs-spec}
+\input{pvs-proof}
+
+\end{document}
+
+

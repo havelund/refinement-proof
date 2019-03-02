@@ -1,0 +1,87 @@
+
+First Refinement:
+=================
+
+MUTATOR
+
+  Locations:
+    MUTATE -> MODIFY
+    COLOUR -> MODIFY
+
+  Transitions:
+  N MUTATE -> MODIFY 
+  n COLOUR -> SKIP
+
+COLLECTOR
+
+  Locations:
+    COLOUR -> COLLECT
+    TEST_L -> COLLECT
+    APPEND -> COLLECT
+
+  Transitions:
+  n COLOUR.1 -> SKIP
+  n COLOUR.2 -> SKIP
+  n TEST_L.1 -> SKIP
+  n TEST_L.2 -> SKIP
+  N APPEND.1 -> COLLECT (inv1)
+  n APPEND.2 -> SKIP
+
+
+Second Refinement:
+==================
+
+COLLECTOR
+
+  Locations:
+    COLOUR_ROOTS ->  COLOUR
+    PROPAGATE    ->  COLOUR
+    TEST_L       ->  TEST_L
+    APPEND       ->  APPEND
+
+  Transitions: 
+  n COLOUR_ROOTS.1 -> SKIP
+  N COLOUR_ROOTS.2 -> COLOUR.1
+  N PROPAGATE.1    -> COLOUR.1
+  N PROPAGATE.2    -> COLOUR.2 (inv1)
+    TEST_L.1       -> TEST_L.1
+    TEST_L.2       -> TEST_L.2
+    APPEND.1       -> APPEND.1
+    APPEND.2       -> APPEND.2
+
+Third Refinement:
+=================
+
+COLLECTOR
+
+  Locations:
+    COLOUR_ROOTS -> COLOUR_ROOTS
+    TEST_I       -> PROPAGATE
+    TEST_COLOUR  -> PROPAGATE
+    COLOUR_SONS  -> PROPAGATE
+    TEST_H       -> PROPAGATE
+    COUNT        -> PROPAGATE
+    COMPARE      -> PROPAGATE
+    TEST_L       -> TEST_L
+    APPEND       -> APPEND
+
+  Transitions:
+    COLOUR_ROOTS.1 -> COLOUR_ROOTS.1
+    COLOUR_ROOTS.2 -> COLOUR_ROOTS.2
+  n TEST_I.1       -> SKIP
+  n TEST_I.2       -> SKIP
+  n TEST_COLOUR.1  -> SKIP
+  n TEST_COLOUR.2  -> SKIP
+  n COLOUR_SONS.1  -> SKIP
+  N COLOUR_SONS.2  -> PROPAGATE.1 (inv1)
+  n TEST_H.1       -> SKIP
+  n TEST_H.2       -> SKIP
+  n COUNT.1        -> SKIP
+  n COUNT.2        -> SKIP
+  N COMPARE.1      -> PROPAGATE.2 (inv2)
+  n COMPARE.2      -> SKIP
+    TEST_L.1       -> TEST_L.1
+    TEST_L.2       -> TEST_L.2
+    APPEND.1       -> APPEND.1
+    APPEND.2       -> APPEND.2
+    

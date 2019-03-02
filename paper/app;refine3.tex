@@ -1,0 +1,301 @@
+
+\newpage
+\subsection{Lemmas in Third Refinement}
+
+\begin{alltt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Refinement3 :                                %
+%   Applies the ``Refinement'' theory to yield %
+%   the third refinement lemma ``R3''.         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Refinement3[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  I2 : THEORY = Garbage_Collector2[NODES,SONS,ROOTS]
+  I3 : THEORY = Garbage_Collector3[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector3_Inv[NODES,SONS,ROOTS]
+
+  s     : VAR I3.State
+  r1,r2 : VAR (I)
+  n,k   : VAR Node
+  i     : VAR Index
+  cs    : VAR Colours
+
+  abs(s):I2.State = 
+    (# MU := CASES MU(s) OF
+               MUTATE : MUTATE,
+               COLOUR : COLOUR
+             ENDCASES,
+       CHI := CASES CHI(s) OF
+                COLOUR_ROOTS : COLOUR_ROOTS,
+                      TEST_I : PROPAGATE,
+                 TEST_COLOUR : PROPAGATE,
+                 COLOUR_SONS : PROPAGATE,
+                      TEST_H : PROPAGATE, 
+                       COUNT : PROPAGATE,
+                     COMPARE : PROPAGATE,
+                      TEST_L : TEST_L,
+                      APPEND : APPEND
+              ENDCASES,
+       Q := Q(s),
+       K := K(s),
+       L := L(s),
+       C := C(s),
+       M := M(s)
+     #)
+
+  sim_mutate : LEMMA
+    (EXISTS n,i,k: r2 = Rule_mutate(n,i,k)(r1)) IMPLIES
+      EXISTS n,i,k: abs(r2) = Rule_mutate(n,i,k)(abs(r1))
+
+  sim_colour_target : LEMMA
+    r2 = Rule_colour_target(r1) IMPLIES
+      abs(r2) = Rule_colour_target(abs(r1))
+
+  sim_stop_colouring_roots : LEMMA
+    r2 = Rule_stop_colouring_roots(r1) IMPLIES
+      abs(r2) = Rule_stop_colouring_roots(abs(r1))
+
+  sim_colour_root : LEMMA
+    r2 = Rule_colour_root(r1) IMPLIES
+      abs(r2) = Rule_colour_root(abs(r1))
+
+  sim_stop_propagating : LEMMA
+    r2 = Rule_stop_propagating(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_continue_propagating : LEMMA
+    r2 = Rule_continue_propagating(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_white_node : LEMMA
+    r2 = Rule_white_node(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_black_node : LEMMA
+    r2 = Rule_black_node(r1) IMPLIES
+      abs(r2) = abs(r1)
+  
+  sim_stop_colouring_sons : LEMMA
+    r2 = Rule_stop_colouring_sons(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_colour_son : LEMMA
+    r2 = Rule_colour_son(r1) IMPLIES
+      (EXISTS n,i: abs(r2) = Rule_propagate(n,i)(abs(r1))) OR
+      abs(r2) = abs(r1)
+
+  sim_stop_counting : LEMMA
+    r2 = Rule_stop_counting(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_continue_counting : LEMMA
+    r2 = Rule_continue_counting(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_skip_white : LEMMA
+    r2 = Rule_skip_white(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_count_black : LEMMA
+    r2 = Rule_count_black(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_stop_colouring : LEMMA
+    r2 = Rule_stop_colouring(r1) IMPLIES
+      abs(r2) = Rule_stop_propagating(abs(r1)) OR
+      abs(r2) = abs(r1)
+
+  sim_continue_colouring : LEMMA
+    r2 = Rule_continue_colouring(r1) IMPLIES
+      abs(r2) = abs(r1)
+
+  sim_stop_appending : LEMMA
+    r2 = Rule_stop_appending(r1) IMPLIES
+      abs(r2) = Rule_stop_appending(abs(r1))
+
+  sim_continue_appending : LEMMA
+    r2 = Rule_continue_appending(r1) IMPLIES
+      abs(r2) = Rule_continue_appending(abs(r1))
+
+  sim_black_to_white : LEMMA
+    r2 = Rule_black_to_white(r1) IMPLIES
+      abs(r2) = Rule_black_to_white(abs(r1))
+
+  sim_append_white : LEMMA
+    r2 = Rule_append_white(r1) IMPLIES
+      abs(r2) = Rule_append_white(abs(r1))
+
+  next_h : LEMMA
+    next(r1,r2) IMPLIES next(abs(r1),abs(r2))
+
+  R3 : THEORY = 
+    Refinement[I2.O_State,
+      I2.State,I2.init,I2.next,I2.proj,
+      I3.State,I3.init,I3.next,I3.proj,
+      abs,I]      
+
+END Refinement3
+\end{alltt}
+
+
+\newpage
+\begin{alltt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Garbage_Collector3_Inv :                                       %
+%   Defines all invariants used in proving the third refinement. %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Garbage_Collector3_Inv[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Memory_Properties[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector3[NODES,SONS,ROOTS]
+  IMPORTING Invariant_Predicates[State]
+
+  s : VAR State
+
+  inv1(s):bool =
+    CHI(s)=COLOUR_SONS AND I(s) < NODES IMPLIES colour(I(s))(C(s))
+
+  inv2(s):bool =
+    CHI(s)=COMPARE AND BC(s)=OBC(s) IMPLIES NOT exists_bw(C(s),M(s))
+
+  inv3(s):bool =
+    (CHI(s)=COLOUR_ROOTS OR 
+     CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS OR
+     CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE)
+       IMPLIES
+     black_roots(IF CHI(s)=COLOUR_ROOTS THEN K(s) ELSE ROOTS ENDIF)(C(s))
+
+  inv4(s):bool =
+    MU(s)=COLOUR AND Q(s) < NODES IMPLIES accessible(Q(s))(M(s))
+
+  inv5(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE) AND
+    OBC(s) = BC(s) + blacks(H(s),NODES)(C(s))
+      IMPLIES
+    NOT exists_bw(C(s),M(s))
+
+  inv6(s):bool =
+    CHI(s)=APPEND AND L(s) < NODES AND accessible(L(s))(M(s))
+      IMPLIES
+    colour(L(s))(C(s))
+
+  inv7(s):bool =
+    ((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+      OBC(s) = blacks(0,NODES)(C(s)) AND
+      exists_bw(0,0,I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF)(C(s),M(s)))
+    IMPLIES
+      exists_bw(I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF,NODES,0)
+        (C(s),M(s))
+
+  inv8(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE)
+      IMPLIES
+    OBC(s) <= BC(s) + blacks(H(s),NODES)(C(s))
+
+  inv9(s):bool =
+    ((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+      OBC(s) = blacks(0,NODES)(C(s)) AND
+      exists_bw(0,0,I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF)(C(s),M(s)))
+    IMPLIES
+      MU(s)=COLOUR
+
+  inv10(s):bool =
+    (CHI(s)=COLOUR_ROOTS OR 
+     CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS)
+      IMPLIES
+    OBC(s) <= blacks(0,NODES)(C(s))
+
+  inv11(s):bool =
+    FORALL (n:Node,i:Index):
+      (((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+          OBC(s) = blacks(0,NODES)(C(s)) AND
+         (n,i) < (I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF) AND
+         bw(n,i)(C(s),M(s)))
+      IMPLIES
+        (MU(s)=COLOUR AND son(n,i)(M(s))=Q(s)))
+
+  inv12(s):bool =
+    ((CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) IMPLIES I(s) < NODES)
+
+  inv13(s):bool =
+    (CHI(s)=TEST_L OR CHI(s)=APPEND)
+      IMPLIES
+    blackened(L(s))(C(s),M(s))
+
+  inv14(s):bool =
+    CHI(s)=COMPARE IMPLIES BC(s) <= blacks(0,NODES)(C(s))
+
+  inv15(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT) IMPLIES BC(s) <= blacks(0,H(s))(C(s))
+
+  I : pred[State] = 
+    inv1 & inv2  & inv3  & inv4  & inv5  & inv6  & inv7 & 
+    inv8 & inv10 & inv11 & inv12 & inv13 & inv14 & inv15
+
+  pi : pred[pred[State]] = preserved(init,next)(I)
+
+  c_inv9 : LEMMA inv11 IMPLIES inv9
+
+  i_inv1  : LEMMA I IMPLIES inv1
+  i_inv2  : LEMMA I IMPLIES inv2
+  i_inv3  : LEMMA I IMPLIES inv3
+  i_inv4  : LEMMA I IMPLIES inv4
+  i_inv5  : LEMMA I IMPLIES inv5
+  i_inv6  : LEMMA I IMPLIES inv6
+  i_inv7  : LEMMA I IMPLIES inv7
+  i_inv8  : LEMMA I IMPLIES inv8
+  i_inv9  : LEMMA I IMPLIES inv9
+  i_inv10 : LEMMA I IMPLIES inv10
+  i_inv11 : LEMMA I IMPLIES inv11
+  i_inv12 : LEMMA I IMPLIES inv12
+  i_inv13 : LEMMA I IMPLIES inv13
+  i_inv14 : LEMMA I IMPLIES inv14
+  i_inv15 : LEMMA I IMPLIES inv15
+
+  p_inv1  : LEMMA pi(inv1)
+  p_inv2  : LEMMA pi(inv2)
+  p_inv3  : LEMMA pi(inv3)
+  p_inv4  : LEMMA pi(inv4)
+  p_inv5  : LEMMA pi(inv5)
+  p_inv6  : LEMMA pi(inv6)
+  p_inv7  : LEMMA pi(inv7)
+  p_inv8  : LEMMA pi(inv8)
+  p_inv10 : LEMMA pi(inv10)
+  p_inv11 : LEMMA pi(inv11)
+  p_inv12 : LEMMA pi(inv12)
+  p_inv13 : LEMMA pi(inv13)
+  p_inv14 : LEMMA pi(inv14)
+  p_inv15 : LEMMA pi(inv15)
+
+  p_I : LEMMA pi(I)  
+
+  inv : LEMMA invariant(init,next)(I)
+
+END Garbage_Collector3_Inv
+\end{alltt}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

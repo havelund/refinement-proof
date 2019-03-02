@@ -1,0 +1,1367 @@
+(|Garbage_Collector3|
+ (IMPORTING1_TCC1 "" (LEMMA "roots_within") (("" (PROPAX) NIL)))
+ (|Rule_colour_target_TCC1| "" (SUBTYPE-TCC) NIL)
+ (|Rule_colour_root_TCC1| "" (LEMMA "roots_within") (("" (GRIND) NIL)))
+ (|Rule_colour_son_TCC1| "" (SUBTYPE-TCC) NIL)
+ (|Rule_colour_son_TCC2| "" (SUBTYPE-TCC) NIL)
+ (|Rule_black_to_white_TCC1| "" (SUBTYPE-TCC) NIL)
+ (|Rule_append_white_TCC1| "" (SUBTYPE-TCC) NIL))(|Garbage_Collector3_Inv|
+                                                  (IMPORTING1_TCC1
+                                                   ""
+                                                   (LEMMA "roots_within")
+                                                   (("" (PROPAX) NIL)))
+                                                  (|inv1_TCC1|
+                                                   ""
+                                                   (SUBTYPE-TCC)
+                                                   NIL)
+                                                  (|inv4_TCC1|
+                                                   ""
+                                                   (SUBTYPE-TCC)
+                                                   NIL)
+                                                  (|inv6_TCC1|
+                                                   ""
+                                                   (SUBTYPE-TCC)
+                                                   NIL)
+                                                  (|c_inv9|
+                                                   ""
+                                                   (EXPAND "IMPLIES")
+                                                   ((""
+                                                     (SKOLEM!)
+                                                     ((""
+                                                       (EXPAND "inv11")
+                                                       ((""
+                                                         (EXPAND "inv9")
+                                                         ((""
+                                                           (FLATTEN)
+                                                           ((""
+                                                             (FORWARD-CHAIN
+                                                              "exists_bw14")
+                                                             ((""
+                                                               (SKOLEM!)
+                                                               ((""
+                                                                 (GRIND NIL)
+                                                                 NIL)))))))))))))))
+                                                  (|i_inv1| "" (IMPLY) NIL)
+                                                  (|i_inv2| "" (IMPLY) NIL)
+                                                  (|i_inv3| "" (IMPLY) NIL)
+                                                  (|i_inv4| "" (IMPLY) NIL)
+                                                  (|i_inv5| "" (IMPLY) NIL)
+                                                  (|i_inv6| "" (IMPLY) NIL)
+                                                  (|i_inv7| "" (IMPLY) NIL)
+                                                  (|i_inv8| "" (IMPLY) NIL)
+                                                  (|i_inv9|
+                                                   ""
+                                                   (LEMMA "c_inv9")
+                                                   ((""
+                                                     (EXPAND "IMPLIES")
+                                                     ((""
+                                                       (SKOLEM!)
+                                                       ((""
+                                                         (INST?)
+                                                         ((""
+                                                           (EXPAND "I")
+                                                           ((""
+                                                             (EXPAND "&")
+                                                             ((""
+                                                               (FLATTEN)
+                                                               ((""
+                                                                 (BDDSIMP)
+                                                                 ((""
+                                                                   (PROPAX)
+                                                                   NIL)))))))))))))))))
+                                                  (|i_inv10| "" (IMPLY) NIL)
+                                                  (|i_inv11| "" (IMPLY) NIL)
+                                                  (|i_inv12| "" (IMPLY) NIL)
+                                                  (|i_inv13| "" (IMPLY) NIL)
+                                                  (|i_inv14| "" (IMPLY) NIL)
+                                                  (|i_inv15| "" (IMPLY) NIL)
+                                                  (|p_inv1|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2"
+                                                     (AUTO-REWRITE! "colour1")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10"
+                                                     (AUTO-REWRITE! "colour1")
+                                                     (("10"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv2|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (LEMMA "i_inv3")
+                                                     (("1"
+                                                       (AUTO-REWRITE
+                                                        "blackened7")
+                                                       (("1"
+                                                         (LEMMA "blackened8")
+                                                         (("1"
+                                                           (AUTO-REWRITE
+                                                            "exists_bw1")
+                                                           (("1"
+                                                             (LEMMA-ACTION)
+                                                             NIL)))))))))
+                                                    ("2"
+                                                     (LEMMA "i_inv3")
+                                                     (("2"
+                                                       (LEMMA "i_inv4")
+                                                       (("2"
+                                                         (AUTO-REWRITE
+                                                          "blackened7")
+                                                         (("2"
+                                                           (LEMMA
+                                                            "blackened8")
+                                                           (("2"
+                                                             (AUTO-REWRITE
+                                                              "colour2")
+                                                             (("2"
+                                                               (LEMMA-ACTION)
+                                                               NIL)))))))))))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11"
+                                                     (LEMMA "i_inv5")
+                                                     (("11"
+                                                       (AUTO-REWRITE
+                                                        "blacks1")
+                                                       (("11"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv3|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (AUTO-REWRITE
+                                                      "black_roots2")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2" (ACTION) NIL)
+                                                    ("3"
+                                                     (AUTO-REWRITE
+                                                      "black_roots1")
+                                                     (("3"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("4" (ACTION) NIL)
+                                                    ("5"
+                                                     (AUTO-REWRITE
+                                                      "black_roots3")
+                                                     (("5"
+                                                       (LEMMA "roots_within")
+                                                       (("5"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11"
+                                                     (AUTO-REWRITE
+                                                      "black_roots1")
+                                                     (("11"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18"
+                                                     (AUTO-REWRITE
+                                                      "black_roots2")
+                                                     (("18"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)
+                                                    ("22" (ACTION) NIL)))
+                                                  (|p_inv4|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (AUTO-REWRITE
+                                                      "accessible2")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2" (ACTION) NIL)
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20"
+                                                     (LEMMA "i_inv6")
+                                                     (("20"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv5|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (LEMMA "i_inv3")
+                                                     (("1"
+                                                       (AUTO-REWRITE
+                                                        "blackened7")
+                                                       (("1"
+                                                         (LEMMA "blackened8")
+                                                         (("1"
+                                                           (AUTO-REWRITE
+                                                            "exists_bw1")
+                                                           (("1"
+                                                             (LEMMA-ACTION)
+                                                             NIL)))))))))
+                                                    ("2"
+                                                     (LEMMA "i_inv3")
+                                                     (("2"
+                                                       (LEMMA "i_inv4")
+                                                       (("2"
+                                                         (LEMMA "i_inv8")
+                                                         (("2"
+                                                           (AUTO-REWRITE
+                                                            "blackened7")
+                                                           (("2"
+                                                             (AUTO-REWRITE
+                                                              "colour2")
+                                                             (("2"
+                                                               (LEMMA
+                                                                "blackened8")
+                                                               (("2"
+                                                                 (LEMMA
+                                                                  "blacks2")
+                                                                 (("2"
+                                                                   (LEMMA-ACTION)
+                                                                   NIL)))))))))))))))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5"
+                                                     (LEMMA "i_inv7")
+                                                     (("5"
+                                                       (AUTO-REWRITE
+                                                        "exists_bw2")
+                                                       (("5"
+                                                         (AUTO-REWRITE
+                                                          "exists_bw3")
+                                                         (("5"
+                                                           (LEMMA-ACTION)
+                                                           NIL)))))))
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13"
+                                                     (AUTO-REWRITE "blacks3")
+                                                     (("13"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("14"
+                                                     (AUTO-REWRITE "blacks4")
+                                                     (("14"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv6|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (LEMMA "accessible1")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2"
+                                                     (LEMMA "colour1")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18"
+                                                     (LEMMA "i_inv13")
+                                                     (("18"
+                                                       (LEMMA "blackened1")
+                                                       (("18"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv7|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (SKOLEM!)
+                                                     (("1"
+                                                       (EXPAND "Rule_mutate")
+                                                       (("1"
+                                                         (LIFT-IF -1)
+                                                         (("1"
+                                                           (SPLIT -1)
+                                                           (("1"
+                                                             (FLATTEN)
+                                                             (("1"
+                                                               (EXPAND "inv7")
+                                                               (("1"
+                                                                 (FLATTEN)
+                                                                 (("1"
+                                                                   (CASE
+                                                                    "((CHI(s1!1) = TEST_I
+            OR CHI(s1!1) = TEST_COLOUR OR CHI(s1!1) = COLOUR_SONS)
+           AND OBC(s1!1) = blacks(0, NODES)(C(s1!1))
+             AND
+           exists_bw(0, 0, I(s1!1),
+                     IF CHI(s1!1) = COLOUR_SONS THEN J(s1!1)
+                     ELSE 0
+                     ENDIF)(C(s1!1),
+                            M(s1!1)))")
+                                                                   (("1"
+                                                                     (FLATTEN)
+                                                                     (("1"
+                                                                       (LEMMA
+                                                                        "i_inv9")
+                                                                       (("1"
+                                                                         (EXPAND
+                                                                          "inv9")
+                                                                         (("1"
+                                                                           (LEMMA-ACTION)
+                                                                           NIL)))))))
+                                                                    ("2"
+                                                                     (REPLACE*)
+                                                                     (("2"
+                                                                       (ASSERT)
+                                                                       (("2"
+                                                                         (DELETE
+
+                                                                          -3)
+                                                                         (("2"
+                                                                           (SPLIT
+                                                                            1)
+                                                                           (("1"
+                                                                             (PROPAX)
+                                                                             NIL)
+                                                                            ("2"
+                                                                             (LEMMA
+                                                                              "exists_bw4")
+                                                                             (("2"
+                                                                               (INST?)
+                                                                               (("2"
+                                                                                 (BDDSIMP
+                                                                                  (-1
+                                                                                   -7
+                                                                                   1))
+                                                                                 (("1"
+                                                                                   (LEMMA
+                                                                                    "i_inv3")
+                                                                                   (("1"
+                                                                                     (EXPAND
+                                                                                      "IMPLIES")
+                                                                                     (("1"
+                                                                                       (INST?)
+                                                                                       (("1"
+                                                                                         (BDDSIMP
+                                                                                          (-1
+                                                                                           -6))
+                                                                                         (("1"
+                                                                                           (EXPAND
+                                                                                            "inv3")
+                                                                                           (("1"
+                                                                                             (CASE
+                                                                                              "black_roots(ROOTS)(C(s1!1))")
+                                                                                             (("1"
+                                                                                               (LEMMA
+                                                                                                "exists_bw5")
+                                                                                               (("1"
+                                                                                                 (INST?)
+                                                                                                 (("1"
+                                                                                                   (INST?)
+                                                                                                   (("1"
+                                                                                                     (HIDE
+                                                                                                      -9)
+                                                                                                     (("1"
+                                                                                                       (CASE
+                                                                                                        "exists_bw(0, 0, NODES, 0)(C(s1!1), M(s1!1))")
+                                                                                                       (("1"
+                                                                                                         (LEMMA
+                                                                                                          "exists_bw6")
+                                                                                                         (("1"
+                                                                                                           (INST?
+                                                                                                            :WHERE
+                                                                                                            +)
+                                                                                                           (("1"
+                                                                                                             (AUTO-REWRITE
+                                                                                                              "exists_bw7")
+                                                                                                             (("1"
+                                                                                                               (ASSERT)
+                                                                                                               (("1"
+                                                                                                                 (CASE
+                                                                                                                  "exists_bw(I(s1!1),
+                  IF CHI(s1!1) = COLOUR_SONS THEN J(s1!1) ELSE 0 ENDIF,
+                  NODES, 0)(C(s1!1),
+                            M(s1!1))")
+                                                                                                                 (("1"
+                                                                                                                   (LEMMA
+                                                                                                                    "exists_bw7")
+                                                                                                                   (("1"
+                                                                                                                     (INST?)
+                                                                                                                     (("1"
+                                                                                                                       (GRIND
+                                                                                                                        NIL)
+                                                                                                                       NIL)))))
+                                                                                                                  ("2"
+                                                                                                                   (GRIND
+                                                                                                                    NIL)
+                                                                                                                   NIL)))))))))))
+                                                                                                        ("2"
+                                                                                                         (GRIND
+                                                                                                          NIL)
+                                                                                                         NIL)))))))))))
+                                                                                              ("2"
+                                                                                               (GRIND
+                                                                                                NIL)
+                                                                                               NIL)))))))))))))
+                                                                                  ("2"
+                                                                                   (PROPAX)
+                                                                                   NIL)))))))))))))))))))))))
+                                                            ("2"
+                                                             (STOP-REWRITE
+                                                              "inv7")
+                                                             (("2"
+                                                               (GRIND NIL)
+                                                               NIL)))))))))))
+                                                    ("2"
+                                                     (EXPAND
+                                                      "Rule_colour_target")
+                                                     (("2"
+                                                       (LIFT-IF -1)
+                                                       (("2"
+                                                         (BDDSIMP)
+                                                         (("1"
+                                                           (EXPAND "inv7")
+                                                           (("1"
+                                                             (LEMMA "i_inv10")
+                                                             (("1"
+                                                               (EXPAND
+                                                                "IMPLIES")
+                                                               (("1"
+                                                                 (INST?)
+                                                                 (("1"
+                                                                   (BDDSIMP
+                                                                    (-1 -5))
+                                                                   (("1"
+                                                                     (EXPAND
+                                                                      "inv10")
+                                                                     (("1"
+                                                                       (AUTO-REWRITE
+                                                                        "blacks2")
+                                                                       (("1"
+                                                                         (AUTO-REWRITE
+                                                                          "blacks5")
+                                                                         (("1"
+                                                                           (AUTO-REWRITE
+                                                                            "colour2")
+                                                                           (("1"
+                                                                             (FLATTEN)
+                                                                             (("1"
+                                                                               (CASE
+                                                                                "colour(Q(s1!1))(C(s1!1))")
+                                                                               (("1"
+                                                                                 (CASE
+                                                                                  "blacks(0, NODES)(C(s1!1)) = OBC(s1!1)")
+                                                                                 (("1"
+                                                                                   (LEMMA
+                                                                                    "colour2")
+                                                                                   (("1"
+                                                                                     (INST?)
+                                                                                     (("1"
+                                                                                       (STOP-REWRITE
+                                                                                        "colour2")
+                                                                                       (("1"
+                                                                                         (DELETE
+
+                                                                                          -5
+                                                                                          -11)
+                                                                                         (("1"
+                                                                                           (BDDSIMP
+                                                                                            (-1
+                                                                                             -3))
+                                                                                           (("1"
+                                                                                             (REPLACE*)
+                                                                                             (("1"
+                                                                                               (ASSERT)
+                                                                                               (("1"
+                                                                                                 (GRIND
+                                                                                                  NIL)
+                                                                                                 NIL)))))))))))))))
+                                                                                  ("2"
+                                                                                   (LEMMA
+                                                                                    "blacks2")
+                                                                                   (("2"
+                                                                                     (INST?)
+                                                                                     (("2"
+                                                                                       (INST?)
+                                                                                       (("2"
+                                                                                         (STOP-REWRITE
+                                                                                          "blacks5")
+                                                                                         (("2"
+                                                                                           (ASSERT)
+                                                                                           NIL)))))))))))
+                                                                                ("2"
+                                                                                 (LEMMA
+                                                                                  "blacks2")
+                                                                                 (("2"
+                                                                                   (INST?)
+                                                                                   (("2"
+                                                                                     (INST?)
+                                                                                     (("2"
+                                                                                       (STOP-REWRITE
+                                                                                        "blacks5")
+                                                                                       (("2"
+                                                                                         (LEMMA
+                                                                                          "blacks5")
+                                                                                         (("2"
+                                                                                           (INST?)
+                                                                                           (("2"
+                                                                                             (ASSERT)
+                                                                                             (("2"
+                                                                                               (GRIND
+                                                                                                NIL)
+                                                                                               NIL)))))))))))))))
+                                                                                ("3"
+                                                                                 (PROPAX)
+                                                                                 NIL)))))))))))))))))))))))
+                                                          ("2"
+                                                           (STOP-REWRITE
+                                                            "inv7")
+                                                           (("2"
+                                                             (ASSERT)
+                                                             NIL)))
+                                                          ("3"
+                                                           (STOP-REWRITE
+                                                            "inv7")
+                                                           (("3"
+                                                             (ASSERT)
+                                                             NIL)))))))))
+                                                    ("3"
+                                                     (AUTO-REWRITE
+                                                      "exists_bw3")
+                                                     (("3"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7"
+                                                     (LEMMA-ACTION)
+                                                     (("1"
+                                                       (LEMMA "exists_bw9")
+                                                       (("1"
+                                                         (INST? :WHERE -6)
+                                                         (("1"
+                                                           (BDDSIMP)
+                                                           (("1"
+                                                             (ASSERT)
+                                                             NIL)))))))
+                                                      ("2"
+                                                       (LEMMA "exists_bw8")
+                                                       (("2"
+                                                         (INST?)
+                                                         (("2"
+                                                           (GRIND NIL)
+                                                           NIL)))))))
+                                                    ("8" (ACTION) NIL)
+                                                    ("9"
+                                                     (AUTO-REWRITE
+                                                      "exists_bw10")
+                                                     (("9"
+                                                       (AUTO-REWRITE
+                                                        "exists_bw11")
+                                                       (("9"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("10"
+                                                     (EXPAND "inv7")
+                                                     (("10"
+                                                       (EXPAND
+                                                        "Rule_colour_son")
+                                                       (("10"
+                                                         (LIFT-IF -1)
+                                                         (("10"
+                                                           (SPLIT -1)
+                                                           (("1"
+                                                             (FLATTEN)
+                                                             (("1"
+                                                               (CASE
+                                                                "colour(son(I(s1!1), J(s1!1))(M(s1!1)))(C(s1!1))")
+                                                               (("1"
+                                                                 (LEMMA
+                                                                  "colour2")
+                                                                 (("1"
+                                                                   (INST?)
+                                                                   (("1"
+                                                                     (BDDSIMP
+                                                                      (-1 -2))
+                                                                     (("1"
+                                                                       (REPLACE*)
+                                                                       (("1"
+                                                                         (ASSERT)
+                                                                         (("1"
+                                                                           (LEMMA
+                                                                            "exists_bw12")
+                                                                           (("1"
+                                                                             (INST?)
+                                                                             (("1"
+                                                                               (BDDSIMP)
+                                                                               (("1"
+                                                                                 (LEMMA
+                                                                                  "exists_bw13")
+                                                                                 (("1"
+                                                                                   (INST?
+                                                                                    :WHERE
+                                                                                    -10)
+                                                                                   (("1"
+                                                                                     (BDDSIMP)
+                                                                                     (("1"
+                                                                                       (ASSERT)
+                                                                                       NIL)))))))
+                                                                                ("2"
+                                                                                 (ASSERT)
+                                                                                 NIL)))))))))))))))))
+                                                                ("2"
+                                                                 (LEMMA
+                                                                  "i_inv10")
+                                                                 (("2"
+                                                                   (LEMMA
+                                                                    "blacks2")
+                                                                   (("2"
+                                                                     (AUTO-REWRITE
+                                                                      "blacks5")
+                                                                     (("2"
+                                                                       (EXPAND
+                                                                        "inv10")
+                                                                       (("2"
+                                                                         (LEMMA-ACTION)
+                                                                         NIL)))))))))
+                                                                ("3"
+                                                                 (PROPAX)
+                                                                 NIL)
+                                                                ("4"
+                                                                 (PROPAX)
+                                                                 NIL)))))
+                                                            ("2"
+                                                             (FLATTEN)
+                                                             (("2"
+                                                               (ASSERT)
+                                                               (("2"
+                                                                 (REPLACE*)
+                                                                 (("2"
+                                                                   (ASSERT)
+                                                                   NIL)))))))))))))))
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16"
+                                                     (AUTO-REWRITE
+                                                      "exists_bw3")
+                                                     (("16"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv8|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2"
+                                                     (LEMMA "blacks2")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5"
+                                                     (LEMMA "i_inv10")
+                                                     (("5"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13"
+                                                     (AUTO-REWRITE "blacks3")
+                                                     (("13"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("14"
+                                                     (AUTO-REWRITE "blacks4")
+                                                     (("14"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv10|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2"
+                                                     (LEMMA "blacks2")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4"
+                                                     (LEMMA-ACTION)
+                                                     (("4"
+                                                       (LEMMA "roots_within")
+                                                       (("4"
+                                                         (LEMMA "blacks2")
+                                                         (("4"
+                                                           (INST?)
+                                                           (("1" (ASSERT) NIL)
+                                                            ("2"
+                                                             (ASSERT)
+                                                             NIL)))))))))
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10"
+                                                     (LEMMA "blacks2")
+                                                     (("10"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16"
+                                                     (LEMMA "i_inv14")
+                                                     (("16"
+                                                       (EXPAND "inv14")
+                                                       (("16"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv11|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (LEMMA "bw2")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2"
+                                                     (LEMMA "bw3")
+                                                     (("2"
+                                                       (LEMMA "bw4")
+                                                       (("2"
+                                                         (LEMMA "blacks2")
+                                                         (("2"
+                                                           (LEMMA "i_inv10")
+                                                           (("2"
+                                                             (LEMMA "blacks5")
+                                                             (("2"
+                                                               (LEMMA
+                                                                "colour2")
+                                                               (("2"
+                                                                 (EXPAND
+                                                                  "IMPLIES")
+                                                                 (("2"
+                                                                   (ACTION)
+                                                                   NIL)))))))))))))))
+                                                    ("3"
+                                                     (AUTO-REWRITE "smaller1")
+                                                     (("3"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("4" (LEMMA-ACTION) NIL)
+                                                    ("5" (LEMMA-ACTION) NIL)
+                                                    ("6"
+                                                     (EXPAND
+                                                      "Rule_continue_propagating")
+                                                     (("6"
+                                                       (LIFT-IF)
+                                                       (("6"
+                                                         (SPLIT)
+                                                         (("1"
+                                                           (FLATTEN)
+                                                           (("1"
+                                                             (EXPAND "inv11")
+                                                             (("1"
+                                                               (SKOLEM!)
+                                                               (("1"
+                                                                 (INST?)
+                                                                 (("1"
+                                                                   (FLATTEN)
+                                                                   (("1"
+                                                                     (LEMMA-ACTION)
+                                                                     NIL)))))))))))
+                                                          ("2"
+                                                           (FLATTEN)
+                                                           (("2"
+                                                             (STOP-REWRITE
+                                                              "inv11")
+                                                             (("2"
+                                                               (REPLACE*)
+                                                               NIL)))))))))))
+                                                    ("7"
+                                                     (EXPAND
+                                                      "Rule_white_node")
+                                                     (("7"
+                                                       (LIFT-IF)
+                                                       (("7"
+                                                         (SPLIT)
+                                                         (("1"
+                                                           (FLATTEN)
+                                                           (("1"
+                                                             (EXPAND "inv11")
+                                                             (("1"
+                                                               (SKOLEM-TYPEPRED)
+                                                               (("1"
+                                                                 (FLATTEN)
+                                                                 (("1"
+                                                                   (INST?)
+                                                                   (("1"
+                                                                     (LEMMA
+                                                                      "smaller2")
+                                                                     (("1"
+                                                                       (INST?
+                                                                        :SUBST
+                                                                        ("k"
+                                                                         "I(s1!1)"))
+                                                                       (("1"
+                                                                         (REPLACE*)
+                                                                         (("1"
+                                                                           (ASSERT)
+                                                                           (("1"
+                                                                             (LEMMA
+                                                                              "bw4")
+                                                                             (("1"
+                                                                               (INST?)
+                                                                               (("1"
+                                                                                 (LEMMA-ACTION)
+                                                                                 NIL)))))))))
+                                                                        ("2"
+                                                                         (PROPAX)
+                                                                         NIL)))))))))))))))
+                                                          ("2"
+                                                           (STOP-REWRITE
+                                                            "inv11")
+                                                           (("2"
+                                                             (GRIND NIL)
+                                                             NIL)))))))))
+                                                    ("8"
+                                                     (EXPAND
+                                                      "Rule_black_node")
+                                                     (("8"
+                                                       (LIFT-IF)
+                                                       (("8"
+                                                         (SPLIT)
+                                                         (("1"
+                                                           (FLATTEN)
+                                                           (("1"
+                                                             (EXPAND "inv11")
+                                                             (("1"
+                                                               (SKOLEM-TYPEPRED)
+                                                               (("1"
+                                                                 (FLATTEN)
+                                                                 (("1"
+                                                                   (INST?)
+                                                                   (("1"
+                                                                     (REPLACE*)
+                                                                     (("1"
+                                                                       (ASSERT)
+                                                                       (("1"
+                                                                         (GRIND
+                                                                          NIL)
+                                                                         NIL)))))))))))))))
+                                                          ("2"
+                                                           (STOP-REWRITE
+                                                            "inv11")
+                                                           (("2"
+                                                             (GRIND NIL)
+                                                             NIL)))))))))
+                                                    ("9"
+                                                     (EXPAND
+                                                      "Rule_stop_colouring_sons")
+                                                     (("9"
+                                                       (LIFT-IF)
+                                                       (("9"
+                                                         (SPLIT)
+                                                         (("1"
+                                                           (FLATTEN)
+                                                           (("1"
+                                                             (EXPAND "inv11")
+                                                             (("1"
+                                                               (SKOLEM-TYPEPRED)
+                                                               (("1"
+                                                                 (FLATTEN)
+                                                                 (("1"
+                                                                   (INST?)
+                                                                   (("1"
+                                                                     (REPLACE*)
+                                                                     (("1"
+                                                                       (ASSERT)
+                                                                       (("1"
+                                                                         (LEMMA
+                                                                          "smaller3")
+                                                                         (("1"
+                                                                           (INST?)
+                                                                           (("1"
+                                                                             (GRIND
+                                                                              NIL)
+                                                                             NIL)
+                                                                            ("2"
+                                                                             (ASSERT)
+                                                                             (("2"
+                                                                               (LEMMA
+                                                                                "i_inv12")
+                                                                               (("2"
+                                                                                 (EXPAND
+                                                                                  "inv12")
+                                                                                 (("2"
+                                                                                   (EXPAND
+                                                                                    "IMPLIES")
+                                                                                   (("2"
+                                                                                     (INST?)
+                                                                                     (("2"
+                                                                                       (GRIND
+                                                                                        NIL)
+                                                                                       NIL)))))))))))))))))))))))))))))
+                                                          ("2"
+                                                           (STOP-REWRITE
+                                                            "inv11")
+                                                           (("2"
+                                                             (GRIND NIL)
+                                                             NIL)))))))))
+                                                    ("10"
+                                                     (EXPAND
+                                                      "Rule_colour_son")
+                                                     (("10"
+                                                       (LIFT-IF)
+                                                       (("10"
+                                                         (SPLIT)
+                                                         (("1"
+                                                           (FLATTEN)
+                                                           (("1"
+                                                             (EXPAND "inv11")
+                                                             (("1"
+                                                               (SKOLEM-TYPEPRED)
+                                                               (("1"
+                                                                 (FLATTEN)
+                                                                 (("1"
+                                                                   (INST
+                                                                    -
+                                                                    "n!1"
+                                                                    "i!1")
+                                                                   (("1"
+                                                                     (SPLIT
+                                                                      -8)
+                                                                     (("1"
+                                                                       (REPLACE*)
+                                                                       (("1"
+                                                                         (ASSERT)
+                                                                         NIL)))
+                                                                      ("2"
+                                                                       (FLATTEN)
+                                                                       (("2"
+                                                                         (PROPAX)
+                                                                         NIL)))
+                                                                      ("3"
+                                                                       (LEMMA
+                                                                        "i_inv10")
+                                                                       (("3"
+                                                                         (LEMMA
+                                                                          "blacks2")
+                                                                         (("3"
+                                                                           (LEMMA-ACTION)
+                                                                           NIL)))))
+                                                                      ("4"
+                                                                       (REPLACE*)
+                                                                       (("4"
+                                                                         (ASSERT)
+                                                                         (("4"
+                                                                           (LEMMA
+                                                                            "smaller4")
+                                                                           (("4"
+                                                                             (INST?
+                                                                              :WHERE
+                                                                              +)
+                                                                             (("4"
+                                                                               (LEMMA
+                                                                                "bw4")
+                                                                               (("4"
+                                                                                 (AUTO-REWRITE
+                                                                                  "colour1")
+                                                                                 (("4"
+                                                                                   (INST?
+                                                                                    :WHERE
+                                                                                    -13)
+                                                                                   (("4"
+                                                                                     (GRIND
+                                                                                      NIL)
+                                                                                     NIL)))))))))))))))
+                                                                      ("5"
+                                                                       (LEMMA
+                                                                        "i_inv10")
+                                                                       (("5"
+                                                                         (LEMMA
+                                                                          "blacks2")
+                                                                         (("5"
+                                                                           (INST?
+                                                                            :SUBST
+                                                                            ("cs"
+                                                                             "C(s1!1)"))
+                                                                           (("5"
+                                                                             (INST?)
+                                                                             (("5"
+                                                                               (INST?)
+                                                                               (("5"
+                                                                                 (EXPAND
+                                                                                  "IMPLIES")
+                                                                                 (("5"
+                                                                                   (INST?)
+                                                                                   (("5"
+                                                                                     (EXPAND
+                                                                                      "inv10")
+                                                                                     (("5"
+                                                                                       (LEMMA
+                                                                                        "bw3")
+                                                                                       (("5"
+                                                                                         (INST?
+                                                                                          :WHERE
+                                                                                          +)
+                                                                                         (("5"
+                                                                                           (INST?)
+                                                                                           (("5"
+                                                                                             (AUTO-REWRITE
+                                                                                              "blacks5")
+                                                                                             (("5"
+                                                                                               (LEMMA-ACTION)
+                                                                                               NIL)))))))))))))))))))))))))))))))))))))
+                                                          ("2"
+                                                           (STOP-REWRITE
+                                                            "inv11")
+                                                           (("2"
+                                                             (GRIND NIL)
+                                                             NIL)))))))))
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16"
+                                                     (AUTO-REWRITE "smaller1")
+                                                     (("16"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv12|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2" (ACTION) NIL)
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv13|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1"
+                                                     (AUTO-REWRITE
+                                                      "blackened2")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2"
+                                                     (AUTO-REWRITE
+                                                      "blackened3")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15"
+                                                     (LEMMA "i_inv2")
+                                                     (("15"
+                                                       (LEMMA "i_inv3")
+                                                       (("15"
+                                                         (AUTO-REWRITE
+                                                          "blackened6")
+                                                         (("15"
+                                                           (AUTO-REWRITE
+                                                            "blackened7")
+                                                           (("15"
+                                                             (LEMMA-ACTION)
+                                                             NIL)))))))))
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19"
+                                                     (AUTO-REWRITE
+                                                      "blackened4")
+                                                     (("19"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("20"
+                                                     (LEMMA "i_inv6")
+                                                     (("20"
+                                                       (AUTO-REWRITE
+                                                        "blackened5")
+                                                       (("20"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv14|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2"
+                                                     (LEMMA "blacks2")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11"
+                                                     (LEMMA "i_inv15")
+                                                     (("11"
+                                                       (AUTO-REWRITE "inv15")
+                                                       (("11"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("12" (ACTION) NIL)
+                                                    ("13" (ACTION) NIL)
+                                                    ("14" (ACTION) NIL)
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_inv15|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-C)
+                                                   (("1" (ACTION) NIL)
+                                                    ("2"
+                                                     (LEMMA "blacks2")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)
+                                                    ("10" (ACTION) NIL)
+                                                    ("11" (ACTION) NIL)
+                                                    ("12" (ACTION) NIL)
+                                                    ("13"
+                                                     (AUTO-REWRITE "blacks6")
+                                                     (("13"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("14"
+                                                     (AUTO-REWRITE "blacks7")
+                                                     (("14"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("15" (ACTION) NIL)
+                                                    ("16" (ACTION) NIL)
+                                                    ("17" (ACTION) NIL)
+                                                    ("18" (ACTION) NIL)
+                                                    ("19" (ACTION) NIL)
+                                                    ("20" (ACTION) NIL)
+                                                    ("21" (ACTION) NIL)))
+                                                  (|p_I|
+                                                   ""
+                                                   (LEMMA "p_inv1")
+                                                   ((""
+                                                     (LEMMA "p_inv2")
+                                                     ((""
+                                                       (LEMMA "p_inv3")
+                                                       ((""
+                                                         (LEMMA "p_inv4")
+                                                         ((""
+                                                           (LEMMA "p_inv5")
+                                                           ((""
+                                                             (LEMMA "p_inv6")
+                                                             ((""
+                                                               (LEMMA
+                                                                "p_inv7")
+                                                               ((""
+                                                                 (LEMMA
+                                                                  "p_inv8")
+                                                                 ((""
+                                                                   (LEMMA
+                                                                    "p_inv10")
+                                                                   ((""
+                                                                     (LEMMA
+                                                                      "p_inv11")
+                                                                     ((""
+                                                                       (LEMMA
+                                                                        "p_inv12")
+                                                                       ((""
+                                                                         (LEMMA
+                                                                          "p_inv13")
+                                                                         ((""
+                                                                           (LEMMA
+                                                                            "p_inv14")
+                                                                           ((""
+                                                                             (LEMMA
+                                                                              "p_inv15")
+                                                                             ((""
+                                                                               (LEMMA
+                                                                                "roots_within")
+                                                                               ((""
+                                                                                 (PRES-ALL)
+                                                                                 NIL)))))))))))))))))))))))))))))))
+                                                  (|inv| "" (INV-ALL) NIL))

@@ -1,0 +1,489 @@
+          
+\section{Formalization in PVS}
+\label{pvs-specifications}
+
+This  appendix   describes   how in  general  transition   systems  and
+refinement mappings   are encoded in  PVS,  and in particular  how the
+garbage collector refinement is encoded.  
+
+
+\subsection{Transition Systems and their Refinement}
+
+Recall     from  section  \ref{transition-systems}    that an observed
+transition   system      is    a      five-tuple   of     the    form:
+$(\Sigma,\Sigma_o,I,N,\pi)$                                (Definition
+\ref{def-observed-transition-system})\@. In PVS  we  model this as a  theory
+with two type definitions, and  three function definitions:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+ots : THEORY
+BEGIN
+  State   : TYPE = ...
+  O_State : TYPE = ...
+
+  proj : [State -> O_State] = ...
+  init : [State -> bool] = ...
+  next : [State,State -> bool] = ...
+END ots
+\end{smallsession}
+%\caption{Observed Transition Systems}
+\label{pvs-ots}
+%\end{figure}
+
+The  correspondence with the   five-tuple is as follows: $\Sigma$  $=$
+${\tt  State}$,  $\Sigma_o$  $=$  ${\tt O\_State}$,   $\pi$  $=$ ${\tt
+  proj}$, $I$ $=$ ${\tt  init}$ and $N$  $=$  ${\tt next}$.  The  {\tt
+  init} function  is  a predicate  on  states,  while the  {\tt  next}
+function  is a predicate on  pairs of states.   We shall formulate the
+specification of the garbage collector  as well as all its refinements
+in this  way.   It  will become clear   below how  in   particular the
+function {\tt  next} is defined.   Now we can  define  what is a trace
+(Definition \ref{def-traces}) and what   is an  invariant  (Definition
+\ref{def-invariants})\@.   This is  done in  the theory  {\tt Traces}:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Traces[State : TYPE] : THEORY
+BEGIN
+  init : VAR pred[State]
+  next : VAR pred[[State,State]]
+  sq   : VAR sequence[State]
+  n    : VAR nat
+
+  trace(init,next)(sq):bool =
+    init(sq(0)) AND
+    FORALL n: next(sq(n),sq(n+1))
+
+  p  : VAR pred[State]
+
+  invariant(init,next)(p):bool =
+    FORALL (tr:(trace(init,next))): FORALL n: p(tr(n))
+END Traces
+\end{smallsession}
+%\caption{Traces and Invariants}
+\label{pvs-traces}
+%\end{figure}
+
+The theory is parameterized with the  {\tt State} type of the observed
+transition system. The {\tt VAR} declarations are just associations of
+types  to names,  such that in  later definitions,  axioms, and lemmas,
+these names are assumed to have the corresponding types.  In addition,
+axioms and lemmas are assumed to  be universally quantified with these
+names over the types.  Note that {\tt pred[T]} in PVS is short for the
+function  space {\tt  [T  -> bool]}\@. The   type {\tt sequence[T]} is
+short for {\tt [nat -> T]}; that is: the set of functions from natural
+numbers to {\tt T}\@.    A  sequence of  {\tt   State}s is hence   an
+infinite  enumeration  of  states.   Given  a  transition  system with
+initiality predicate {\tt init} and  next-state relation {\tt next}, a
+sequence {\tt  sq}   is a trace  of  this  transition system  if  {\tt
+  trace(init,next)(sq)} holds. A predicate {\tt p}  is an invariant if
+{\tt  invariant(init,next)(p)} holds. That is: if   for any trace {\tt
+  tr}, {\tt p} holds in all positions {\tt n} of that trace.  Note how
+the predicate {\tt trace(init,next)} (it is  a predicate on sequences)
+is  turned into a type in  PVS by surrounding  it with parentheses -- the
+type containing all the elements for which the predicate holds, namely
+all the program traces.
+
+The next notion  we introduce in PVS  is that of  a refinement between
+two observed transition   systems  (Definition \ref{def-refinement})\@.  
+The theory   {\tt Refine\_Predicate} below  defines  the function {\tt
+  refines}, which is   a predicate on   a pair of  observed transition
+systems:   a  low  level  {\bf i}mplementation    system as the  first
+parameter,  and   a high level  {\bf  s}pecification  system as as the
+second parameter.   The theory is parameterized  with  the state space
+{\tt S\_State} of the high level specification theory, the state space
+{\tt  I\_State}  of  the low   level implementation  theory,   and the
+observed  state space {\tt O\_State},  which we remember is common for
+the two observed transition systems. Refinement is defined as follows:
+{\em for all  traces {\tt i\_tr}  of the implementation  system, there
+  exists  a trace {\tt  s\_tr} of the  specification system, such that
+  when mapping the respective projection functions to the traces, they
+  become equal}\@. The function map  has the type {\tt  map : [[D->R] ->
+  [sequence[D] -> sequence[R]]]} and simply  applies a function to all
+the elements of a sequence.  Finally, we introduce  in the theory {\tt
+  Refinement} the  notion     of a  refinement   mapping   (Definition
+\ref{def-refinement-mapping})  and  its  use  for  proving refinement
+(Theorem \ref{theorem-refinement})\@.   The theory is parameterized with
+a specification {\em observed  transition system} (prefixes  {\tt S}),
+an implementation {\em observed transition system} (prefixes {\tt I}),
+an abstraction function {\tt abs}, and  an invariant {\tt I\_inv} over
+the implementation system.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Refine_Predicate[O_State:TYPE, S_State:TYPE, I_State:TYPE] : THEORY
+BEGIN
+  IMPORTING Traces
+  s_init : VAR pred[S_State]
+  s_next : VAR pred[[S_State,S_State]]
+  s_proj : VAR [S_State -> O_State]
+  i_init : VAR pred[I_State]
+  i_next : VAR pred[[I_State,I_State]]
+  i_proj : VAR [I_State -> O_State]
+
+  refines(i_init,i_next,i_proj)(s_init,s_next,s_proj):bool =
+    FORALL (i_tr:(trace(i_init,i_next))):
+      EXISTS (s_tr:(trace(s_init,s_next))): 
+        map(i_proj,i_tr) = map(s_proj,s_tr)  
+END Refine_Predicate
+\end{smallsession}
+%\caption{Refinement}
+\label{pvs-refine-predicate}
+%\end{figure}
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Refinement[
+  O_State : TYPE,
+  S_State : TYPE, 
+  S_init  : pred[S_State], 
+  S_next  : pred[[S_State,S_State]],
+  S_proj  : [S_State -> O_State],
+  I_State : TYPE,
+  I_init  : pred[I_State],
+  I_next  : pred[[I_State,I_State]],
+  I_proj  : [I_State -> O_State],
+  abs     : [I_State -> S_State],
+  I_inv   : [I_State -> bool]] : THEORY
+BEGIN
+  ASSUMING
+    IMPORTING Traces
+    s     : VAR I_State
+    r1,r2 : VAR (I_inv)
+    proj_id : ASSUMPTION FORALL s: S_proj(abs(s)) = I_proj(s)
+    init_h  : ASSUMPTION FORALL s: I_init(s) IMPLIES S_init(abs(s))
+    next_h  : ASSUMPTION I_next(r1,r2) IMPLIES S_next(abs(r1),abs(r2))
+    invar   : ASSUMPTION invariant(I_init,I_next)(I_inv)
+  ENDASSUMING
+  IMPORTING Refine_Predicate[O_State,S_State,I_State]
+
+  ref : THEOREM refines(I_init,I_next,I_proj)(S_init,S_next,S_proj)
+END Refinement
+\end{smallsession}
+%\caption{Refinement Mappings}
+\label{pvs-mappings}
+%\end{figure}
+
+The theory contains  a number of assumptions  on the  parameters and a
+theorem, which has been proven  using the assumptions.  Hence, the way
+to use  this parameterized theory  is to  apply  it to  arguments that
+satisfy the  assumptions,   prove   these,  and    then obtain as     a
+consequence,  the  theorem which    states that   the implementation
+refines     the    specification    (corresponding       to    Theorem
+\ref{theorem-refinement})\@.  This theorem has been  proved once and for
+all.     The     assumptions    are  as      stated   in    Definition
+\ref{def-refinement-mapping}\@.   We   shall   further  need to   assume
+transitivity  of the refinement  relation, and this is formulated (and
+proved) in the theory {\tt Refine\_Predicate\_Transitive}\@.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Refine_Predicate_Transitive[
+  O_State:TYPE, State1:TYPE, State2:TYPE, State3:TYPE] : THEORY
+BEGIN
+  IMPORTING Refine_Predicate
+  init1 : VAR pred[State1]
+  next1 : VAR pred[[State1,State1]]
+  proj1 : VAR [State1 -> O_State]
+  init2 : VAR pred[State2]
+  next2 : VAR pred[[State2,State2]]
+  proj2 : VAR [State2 -> O_State]
+  init3 : VAR pred[State3]
+  next3 : VAR pred[[State3,State3]]
+  proj3 : VAR [State3 -> O_State]
+ 
+  transitive : LEMMA 
+    refines[O_State,State2,State3]
+      (init3,next3,proj3)(init2,next2,proj2) AND 
+    refines[O_State,State1,State2]
+      (init2,next2,proj2)(init1,next1,proj1)
+      IMPLIES
+    refines[O_State,State1,State3]
+      (init3,next3,proj3)(init1,next1,proj1)
+END Refine_Predicate_Transitive
+\end{smallsession}
+%\caption{Refinement is Transitive}
+\label{refinement-transitive}
+%\end{figure}
+
+
+\subsection{The Specification}
+
+In this section we outline how the  initial specification from section
+\ref{goto-specification} of the garbage collector is modeled in PVS.
+We start with the specification of the memory structure, and then continue with
+the two processes that work on this shared structure.
+
+
+\subsubsection{The Memory}
+
+The    memory  type is     introduced  in  the   theory {\tt  Memory},
+parameterized with the memory boundaries.   That is, {\tt NODES}, {\tt
+  SONS}, and {\tt  ROOTS}   define respectively  the  number of  nodes
+(rows), the number of sons (columns/cells) per node, and the number of
+nodes that are   roots.  They must  all  be  positive natural  numbers
+(different from $0$)\@.  There is also an obvious assumption that {\tt
+  ROOTS}  is  not bigger  than   {\tt  NODES}\@.  These three   memory
+boundaries are parameters to all our  theories.  The {\tt Memory} type
+is defined as an abstract  (non-empty) type upon  which a constant and
+collection of functions are  defined.  First, however, types of nodes,
+indexes and roots are defined.
+The   constant  {\tt   null\_array} represents    the initial   memory
+containing {\tt 0} in all memory cells (axiom  {\tt mem\_ax1})\@.  The
+function {\tt son} returns the pointer contained in a particular cell.
+That is,   the   expression {\tt  son(n,i)(m)}  returns  the   pointer
+contained in the cell identified by node {\tt n} and  index {\tt i}\@. 
+Finally,  the function {\tt  set\_son}  assigns a  pointer to a  cell. 
+That is, the  expression  {\tt set\_son(n,i,k)(m)} returns the  memory
+{\tt m} updated in  cell {\tt (n,i)} to   contain (a pointer to  node)
+{\tt  k}\@.   
+In  order to  define   what is  an   accessible node, we
+introduce the function  {\tt points\_to}, which  defines what it means
+for one node, {\tt n1},  to point to another, {\tt  n2}, in the memory
+{\tt m}\@. 
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Memory[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
+  Memory : TYPE+
+  Node   : TYPE = \{n : nat | n < NODES\}
+  Index  : TYPE = \{i : nat | i < SONS\}
+  Root   : TYPE = \{r : nat | r < ROOTS\}
+  m         : VAR Memory
+  n,n1,n2,k : VAR Node
+  i,i1,i2   : VAR Index
+
+  null_array : Memory
+  son        : [Node,Index -> [Memory -> Node]]
+  set_son    : [Node,Index,Node -> [Memory -> Memory]]
+
+  mem_ax1 : AXIOM son(n,i)(null_array) = 0
+
+  mem_ax2 : AXIOM son(n1,i1)(set_son(n2,i2,k)(m)) =
+                    IF n1=n2 AND i1=i2 THEN k ELSE son(n1,i1)(m) ENDIF
+
+  points_to(n1,n2)(m):bool = EXISTS (i:Index): son(n1,i)(m)=n2
+
+  accessible(n)(m): INDUCTIVE bool = 
+    n < ROOTS OR
+    EXISTS k: accessible(k)(m) AND points_to(k,n)(m)
+
+  append_to_free : [Node -> [Memory -> Memory]]
+  append_ax: AXIOM (NOT accessible(k)(m)) IMPLIES
+                      (accessible(n)(append_to_free(k)(m)) 
+                       IFF (n = k OR accessible(n)(m)))  
+END Memory
+\end{smallsession}
+%\caption{The Memory}
+\label{memory-fig}
+%\end{figure}
+
+The function {\tt accessible}  is then defined inductively,
+yielding the least predicate on nodes $n$ (true on the smallest set of
+nodes) where either  $n$ is  a root, or    $n$ is pointed to from   an
+already  reachable node $k$.    Finally  we define  the  operation for
+appending a garbage   node to the list    of free nodes,  that  can be
+allocated by the    mutator.  This operation is   defined  abstractly,
+assuming as little as possible  about its behaviour. Note that,  since
+the  free list is supposed to  be part of the  memory, we could easily
+have  defined this operation  in terms of the  functions {\tt son} and
+{\tt set\_son}, but this would have  required that we took some design
+decisions as to how  the list was  represented (for example where  the
+head of the  list should be and whether  new elements  should be added
+first  or last)\@.   The axiom {\tt   append\_ax} defining the  append
+operation says  that {\em in appending a  garbage node, only that node
+  becomes accessible,  and the accessibility of  all other nodes stays
+  unchanged}\@.
+
+\subsubsection{The Mutator and the Collector}
+
+The  complete PVS formalization  of  the  garbage collector top  level
+specification  presented in section  \ref{goto-specification} is given
+below.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Garbage_Collector[NODES : posnat, SONS : posnat, ROOTS : posnat] : THEORY
+BEGIN
+  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
+  IMPORTING Memory[NODES,SONS,ROOTS]
+  State   : TYPE = Memory
+  O_State : TYPE = Memory
+  s,s1,s2 : VAR State
+  n,k     : VAR Node
+  i       : VAR Index
+
+  proj(s):O_State = s
+
+  init(s):bool = (s = null_array)
+
+  Rule_mutate(n,i,k)(s):State =
+    IF accessible(k)(s) THEN 
+      set_son(n,i,k)(s)
+    ELSE s ENDIF
+
+  Rule_append(n)(s):State =
+    IF NOT accessible(n)(s) THEN
+      append_to_free(n)(s)
+    ELSE s ENDIF
+
+  next(s1,s2):bool =
+    (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1)) OR
+    (EXISTS n: s2 = Rule_append(n)(s1)) OR
+    s2 = s1
+END Garbage_Collector
+\end{smallsession}
+%\caption{Specification}
+\label{pvs-specification}
+%\end{figure}
+
+The state   is simply the memory,  and   so is the observable   state. 
+Hence, there are no hidden variables, and the projection function {\tt
+  proj} is the identity.      The next-state relation {\tt next}    is
+defined as a disjunction between three  disjuncts, each representing a
+possible single   transition  of the   total  system.   The  first two
+disjuncts represent   a  move  of  the  mutator  and   the  collector,
+respectively,  each  move defined  through   a  function.  The   third
+possibility just represents {\em stuttering}: the  fact that a process
+does not change the state (needed for technical reasons)\@.
+
+Since each process (mutator, collector) only has one location we do not
+model these  locations explicitly.    The function {\tt  Rule\_mutate}
+represents a move by  the mutator, which  is non-deterministic  in the
+choice of the nodes {\tt  n,k} and index  {\tt i}\@.  The function, when
+applied to an {\em old\/} state, yields a {\em new\/} state, where (if
+{\tt k} is accessible) a  pointer has been changed.  Non-deterministic
+choices are modeled via existential quantifications.  Each transition
+function is   defined in terms  of  an  {\tt IF-THEN-ELSE} expression,
+where the   condition represents the    guard of the  transition  (the
+situation where the transition may meaningfully be applied), and where
+the {\tt ELSE} part returns the unchanged state, in  case the guard is
+false\footnote{This  allows for   {\em  stuttering}  where  rules  are
+  applied   without  changing    the  state.}\@.    The function    {\tt
+  Rule\_append} represents a  move by  the  collector.  In each  step,
+either  the mutator   makes  a move,   or the   collector  does.  This
+corresponds to an interleaving semantics of concurrency.  Note how the
+repeated execution is  guaranteed by our  interpretation of what  is a
+trace in terms of the next-state relation.
+
+
+\subsection{The First Refinement}
+
+In this  section  we outline  how the  first refinement   from section
+\ref{first-refinement} of the garbage  collector is  modeled in PVS.  
+In order to keep the presentation reasonably sized, we only illustrate
+this  first refinement.  The    remaining refinements follow the  same
+pattern. First, we describe a collection of  colouring functions.  The
+theory {\tt Coloured\_Memory}  below introduces the primitives  needed
+for  colouring memory  nodes.  The  type  {\tt Colour} represents  the
+colours {\em black\/} (true) and {\em white\/} (false)\@.   The type {\tt
+Colours} 
+contains possible colourings  of the memory,  each being a mapping from
+nodes to their colours.  The functions {\tt colour}, {\tt set\_colour}
+and  {\tt blackened} are  formalizations of those  presented on page
+\pageref{refinement1-functions}\@.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Coloured_Memory[NODES : posnat, SONS : posnat, ROOTS : posnat] : THEORY
+BEGIN
+  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
+  IMPORTING Memory[NODES,SONS,ROOTS]
+  Colour  : TYPE = bool
+  Colours : TYPE = [Node -> Colour]
+  n  : VAR Node 
+  i  : VAR Index
+  c  : VAR Colour
+  cs : VAR Colours
+  m  : VAR Memory
+
+  colour(n)(cs):Colour = cs(n)
+
+  set_colour(n,c)(cs):Colours = cs WITH [n := c]
+
+  blackened(cs,m):bool = FORALL n: accessible(n)(m) IMPLIES colour(n)(cs)
+END Coloured_Memory
+\end{smallsession}
+%\caption{Coloured Memory}
+\label{pvs-coloured-memory}
+%\end{figure}
+
+We now show how the first refinement is formulated in PVS.  The entire
+theory called  {\tt  Garbage\_Collector1} is presented in  the figure
+below. First of all, the state type is a record type  with a field for
+each program variable.  In addition to the ordinary program variables,
+there is a program counter ``variable'' for each process: {\tt MU} for
+the  mutator, and {\tt CHI}  for the collector.   Each program counter
+ranges over a type  that contains the  possible labels.  The  observed
+state  is   still just  the  memory,  hence ignoring, for   example, the
+colouring  {\tt C}\@.  We see that  the mutator next-state relation {\tt
+  MUTATOR} is now   defined as a  disjunction  between a {\em  mutate}
+transition and a {\em  colour Q} transition. The collector  next-state
+relation {\tt COLLECTOR} is   defined as the disjunction  between  six
+possible transitions.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Garbage_Collector1[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
+  IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
+  MuPC    : TYPE = \{MUTATE,COLOUR\}  
+  CoPC    : TYPE = \{COLOUR,TEST_L,APPEND\}
+  State   : TYPE = [# MU : MuPC, CHI : CoPC, 
+                      Q : nat, L : nat , C : Colours, M : Memory #]
+  O_State : TYPE = Memory 
+  s,s1,s2 : VAR State n,k : VAR Node i : VAR Index
+
+  proj(s):O_State = M(s)
+  init(s):bool = MU(s) = MUTATE & CHI(s) = COLOUR & M(s) = null_array
+  Rule_mutate(n,i,k)(s):State =
+    IF MU(s) = MUTATE AND accessible(k)(M(s)) THEN 
+      s WITH [M := set_son(n,i,k)(M(s)), Q := k, MU := COLOUR] 
+    ELSE s ENDIF
+  Rule_colour_target(s):State =
+    IF MU(s) = COLOUR AND Q(s) < NODES THEN 
+      s WITH [C := set_colour(Q(s),TRUE)(C(s)), MU := MUTATE] 
+    ELSE s ENDIF
+  MUTATOR(s1,s2):bool =
+    (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1)) OR 
+    s2 = Rule_colour_target(s1)
+  Rule_stop_colouring(s):State =
+    IF CHI(s) = COLOUR AND blackened(C(s),M(s)) THEN
+      s WITH [L := 0, CHI := TEST_L] ELSE s ENDIF
+  Rule_colour(n)(s):State =
+    IF CHI(s) = COLOUR THEN
+      s WITH [C := set_colour(n,TRUE)(C(s))] ELSE s ENDIF
+  Rule_stop_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) = NODES THEN
+      s WITH [CHI := COLOUR] ELSE s ENDIF
+  Rule_continue_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) < NODES THEN
+      s WITH [CHI := APPEND] ELSE s ENDIF
+  Rule_black_to_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND colour(L(s))(C(s)) THEN
+      s WITH [C:=set_colour(L(s),FALSE)(C(s)),L:=L(s)+1,CHI:=TEST_L]
+    ELSE s ENDIF
+  Rule_append_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND NOT colour(L(s))(C(s)) THEN
+      s WITH [M := append_to_free(L(s))(M(s)),L:=L(s)+1,CHI:=TEST_L]
+    ELSE s ENDIF
+  COLLECTOR(s1,s2):bool = 
+      s2 = Rule_stop_colouring(s1) OR (EXISTS n:s2 = Rule_colour(n)(s1))
+   OR s2 = Rule_stop_appending(s1) OR s2 = Rule_continue_appending(s1) 
+   OR s2 = Rule_black_to_white(s1) OR s2 = Rule_append_white(s1)
+  next(s1,s2):bool = MUTATOR(s1,s2) OR COLLECTOR(s1,s2) OR s2 = s1
+END Garbage_Collector1
+\end{smallsession}
+%\caption{First Refinement - the Collector}
+\label{pvs-refinement1}
+%\end{figure}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

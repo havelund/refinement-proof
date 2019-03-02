@@ -1,0 +1,195 @@
+         
+\chapter{Model Checking in Murphi}
+
+In this chapter, we shortly outline our experience with encoding the
+garbage collector in the Murphi model checker \cite{MDC:Murphi}.
+The full  formal Murphi program is contained
+in appendix \ref{app:murphi-spec}.
+
+Murphi uses a  program  model  that is  similar   to those  of   UNITY
+\cite{CM:UNITY} and TLA \cite{TLA:TOPLAS94}, hence the  one we have used in
+our PVS   specification.  A Murphi  program  has three   components: a
+declaration  of the  global variables,  a description  of the  initial
+state, and a collection of  transition rules.  Each transition rule is
+a guarded command that consists of a boolean guard expression over the
+global  variables,  and  a deterministic  statement   that changes the
+global variables.  In addition, one  can state invariant conditions to
+be verified.
+
+An execution of a Murphi program is obtained by repeatedly {\it (1)
+arbitrarily selecting  one of the transition  rules  where the boolean
+guard is true in the current state; (2) executing the statement of the
+chosen transition  rule}\@.  The statement  is executed atomically: no
+other  transition  rules  are   executed   in  parallel.   Thus  state
+transitions  are interleaving  and processes  communicate  via  shared
+variables.  The notion of process is not  formally  supported, but may
+be thought  of  as  a  subset  of  the transition  rules.   The Murphi
+verifier tries to explore all reachable states in order to ensure that
+all  invariants hold.  If a violation is detected,  Murphi generates a
+violating trace.
+
+The reader  is referred to the  appendix for the details of the model.
+Here we shall  focus on the differences between the PVS model  and the
+Murphi model. The two principal advantages of PVS are that (1): in PVS
+we can  verify  a  parameterized program,  whereas  in  Murphi we  are
+limited to a finite state program; and: (2) in PVS we can be  abstract
+at  the algorithmic level,  whereas  in Murphi we have to make certain
+design choices.  The  advantage  of  Murphi  is that  verification  is
+automatic, whereas in PVS we have to manually assist the proof.
+
+
+\section*{Infinite Versus Finite State}
+
+The first obvious difference concerns the size of the memory.   In PVS,
+the   boundaries  ({\tt  NODES},  {\tt  SONS}  and  {\tt  ROOTS})  are
+unspecified    parameters   (figure   \ref{memory-fig}),   hence   the
+correctness does not depend  on  their specific  values.  The  garbage
+collector is therefore verified for any size of memory.  In the Murphi
+program,  on  the  other hand, we  have to fix the boundaries to
+particular natural numbers.  In  our case, we  verified  the algorithm
+with the  following  values: {\tt NODES} = 3, {\tt SONS} =  2 and {\tt
+ROOTS = 1} (figure \ref{murphi-bounds-fig}).
+
+\begin{figure}
+\begin{smallsession}
+Const
+  NODES : 3;
+  SONS  : 2;
+  ROOTS : 1;
+\end{smallsession}
+\caption{The Choice of Fixed boundaries}
+\label{murphi-bounds-fig}
+\end{figure}
+
+In  this context, Murphi used  2895  seconds to verify  the invariant,
+exploring 415633 states and firing 3659911 transition rules. It turned
+out that Murphi was unable to verify bigger memories within reasonable
+time (days).
+
+
+\section*{Abstractness of Memory}
+
+The PVS memory is abstractly specified in terms of a set of axioms
+(figure  \ref{memory-fig}).
+Although we think of the memory as an array of two dimensions, this is in
+fact not required by an implementation. In the Murphi program, on the
+other hand, we need to choose an implementation of the memory, and we have
+chosen to model it as a two dimensional array as illustrated in figure
+\ref{murphi-memory-fig}.
+
+\begin{figure}
+\begin{smallsession}
+Type
+  Node   : 0..NODES-1;
+  Index  : 0..SONS-1;
+  Colour : boolean;
+  NodeStruct : Record
+                 colour : Colour;
+                 cells  : Array[Index] Of Node;
+               End;
+
+Var
+  M : Array[Node] Of NodeStruct; 
+
+Function colour(n:Node):Colour;
+Begin
+  Return M[n].colour;
+End;
+
+Procedure set_colour(n:Node;c:Colour);
+Begin
+  M[n].colour := c;
+End;
+
+Function son(n:Node;i:Index):Node;
+Begin
+  Return M[n].cells[i]
+End;
+
+Procedure set_son(n:Node;i:Index;k:Node);
+Begin
+  M[n].cells[i] := k;  
+End;
+\end{smallsession}
+\caption{The Memory}
+\label{murphi-memory-fig}
+\end{figure}
+
+
+\section*{Abstractness of the Append Operation}
+
+The  PVS append operation is abstractly specified in terms of a set of
+axioms (figure \ref{append-fig}). Hence  we have made no decisions for
+example as to where is the head of the free list, or whether to append
+elements first  or  last.   In Murphi  we are  obliged  to  take  such
+decisions.  Figure \ref{murphi-append-fig}  shows how we  have  chosen
+cell (0,0) to be the head of  the list,  such  that  new elements  are
+added to the front.
+
+\begin{figure}
+\begin{smallsession}
+Procedure append_to_free(new_free:Node);
+Var
+  old_first_free : Node;
+Begin
+  old_first_free := son(0,0);
+  set_son(0,0,new_free);
+  For i:Index Do set_son(new_free,i,old_first_free) EndFor;
+End;
+\end{smallsession}
+\caption{The {\tt append\_to\_free} Operation}
+\label{murphi-append-fig}
+\end{figure}
+
+
+\section*{Abstractness of the Accessibility Predicate}
+
+The PVS {\tt accessible} predicate is specified in an abstract manner
+using     existential    quantification     over     paths     (figure
+\ref{accessible-fig}).  Such a  formulation is not possible in Murphi,
+where we  have to  code an algorithm  that marks nodes already visited
+during the  examination of  accessible  nodes.  This  is  to  avoid  a
+looping  behaviour in case  of  cyclic  accessibility  in  the  memory.
+Figure \ref{murphi-accessible-fig} illustrates the algorithm.
+
+\begin{figure}
+\begin{smallsession}
+Function accessible(n:Node):boolean;
+Type
+  Status : Enum\{TRY,UNTRIED,TRIED\};
+Var
+  status : Array[Node] Of Status;
+  s : Node;
+  try_again : boolean;
+Begin
+  For k:Node Do
+    status[k] := (is_root(k) ? TRY : UNTRIED)
+  EndFor;
+  try_again := true;
+  While try_again Do
+    try_again := false;
+    For k:Node Do
+      If status[k]=TRY Then
+        For j:Index Do
+          s := son(k,j);
+          If status[s]=UNTRIED Then 
+            status[s] := TRY; 
+            try_again := true;            
+          End;
+        EndFor;
+        status[k] := TRIED;
+      End;
+    EndFor;
+  End; 
+  Return status[n]=TRIED
+End;
+\end{smallsession}
+\caption{The {\tt accessible} Predicate}
+\label{murphi-accessible-fig}
+\end{figure}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

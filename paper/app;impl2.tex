@@ -1,0 +1,161 @@
+
+\newpage
+\subsection{Second Refinement}
+
+\begin{alltt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Garbage_Collector2 :                              %
+%   The second refinement of the garbage collector. %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Garbage_Collector2[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
+
+  MuPC    : TYPE = \{MUTATE,COLOUR\}  
+  CoPC    : TYPE = \{COLOUR_ROOTS,PROPAGATE,TEST_L,APPEND\}
+
+  State   : TYPE = [# MU : MuPC, CHI : CoPC, 
+                      Q : nat, K : nat, L : nat, C : Colours, M : Memory #]
+
+  O_State : TYPE = Memory
+
+  s,s1,s2 : VAR State
+  n,k     : VAR Node
+  i       : VAR Index
+
+  proj(s):O_State = M(s)
+
+  init(s):bool = 
+      MU(s) = MUTATE
+    & CHI(s) = COLOUR_ROOTS
+    & K(s) = 0 
+    & M(s) = null_array
+
+  %%%%%%%%%%%%%%%%%%%%%%%
+  % The MUTATOR Process %
+  %%%%%%%%%%%%%%%%%%%%%%%
+
+  Rule_mutate(n,i,k)(s):State =
+    IF MU(s) = MUTATE AND accessible(k)(M(s)) THEN 
+      s WITH [M := set_son(n,i,k)(M(s)),
+              Q := k,
+              MU := COLOUR]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_colour_target(s):State =
+    IF MU(s) = COLOUR AND Q(s) < NODES THEN 
+      s WITH [C := set_colour(Q(s),TRUE)(C(s)),
+              MU := MUTATE]
+    ELSE 
+      s
+    ENDIF
+
+  MUTATOR(s1,s2):bool =
+       (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1))
+    OR s2 = Rule_colour_target(s1)
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  % The COLLECTOR Process %
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+
+  Rule_stop_colouring_roots(s):State =
+    IF CHI(s) = COLOUR_ROOTS AND K(s) = ROOTS THEN
+      s WITH [CHI := PROPAGATE]
+    ELSE
+      s
+    ENDIF
+
+  Rule_colour_root(s):State =
+    IF CHI(s) = COLOUR_ROOTS AND K(s) < ROOTS THEN
+      s WITH [C := set_colour(K(s),TRUE)(C(s)),
+              K := K(s) + 1]
+    ELSE
+      s
+    ENDIF
+
+  Rule_stop_propagating(s):State =
+    IF CHI(s) = PROPAGATE AND NOT exists_bw(C(s),M(s)) THEN 
+      s WITH [L := 0, CHI := TEST_L]
+    ELSE
+      s
+    ENDIF
+
+  Rule_propagate(n,i)(s):State =
+    IF CHI(s) = PROPAGATE AND bw(n,i)(C(s),M(s)) THEN
+      s WITH [C := set_colour(son(n,i)(M(s)),TRUE)(C(s))]
+    ELSE
+      s
+    ENDIF
+
+  Rule_stop_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) = NODES THEN
+      s WITH [K := 0, CHI := COLOUR_ROOTS]
+    ELSE
+      s
+    ENDIF
+
+  Rule_continue_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) < NODES THEN
+      s WITH [CHI := APPEND]
+    ELSE 
+      s 
+    ENDIF
+
+  Rule_black_to_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND colour(L(s))(C(s)) THEN
+      s WITH [C := set_colour(L(s),FALSE)(C(s)),
+              L := L(s)+1,
+              CHI := TEST_L]
+    ELSE 
+      s 
+    ENDIF
+
+  Rule_append_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND NOT colour(L(s))(C(s)) THEN
+      s WITH [M := append_to_free(L(s))(M(s)),
+              L := L(s) + 1,
+              CHI := TEST_L]
+    ELSE 
+      s 
+    ENDIF
+
+  COLLECTOR(s1,s2):bool =
+       s2 = Rule_stop_colouring_roots(s1)
+    OR s2 = Rule_colour_root(s1)
+    OR s2 = Rule_stop_propagating(s1)
+    OR (EXISTS n,i: s2 = Rule_propagate(n,i)(s1))
+    OR s2 = Rule_stop_appending(s1) 
+    OR s2 = Rule_continue_appending(s1) 
+    OR s2 = Rule_black_to_white(s1) 
+    OR s2 = Rule_append_white(s1)
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % The Transition Relation %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  next(s1,s2):bool =
+    MUTATOR(s1,s2) OR
+    COLLECTOR(s1,s2) OR
+    s2 = s1
+
+END Garbage_Collector2
+\end{alltt}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,0 +1,89 @@
+(|Garbage_Collector1|
+ (IMPORTING1_TCC1 "" (LEMMA "roots_within") (("" (PROPAX) NIL)))
+ (|Rule_colour_target_TCC1| "" (SUBTYPE-TCC) NIL)
+ (|Rule_black_to_white_TCC1| "" (SUBTYPE-TCC) NIL)
+ (|Rule_append_white_TCC1| "" (SUBTYPE-TCC) NIL))(|Garbage_Collector1_Inv|
+                                                  (IMPORTING1_TCC1
+                                                   ""
+                                                   (LEMMA "roots_within")
+                                                   (("" (PROPAX) NIL)))
+                                                  (|inv1_TCC1|
+                                                   ""
+                                                   (SUBTYPE-TCC)
+                                                   NIL)
+                                                  (|i_inv1| "" (IMPLY) NIL)
+                                                  (|i_inv2| "" (IMPLY) NIL)
+                                                  (|p_inv1|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-A)
+                                                   (("1"
+                                                     (LEMMA "accessible1")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2"
+                                                     (AUTO-REWRITE! "colour1")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3" (ACTION) NIL)
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6"
+                                                     (LEMMA "i_inv2")
+                                                     (("6"
+                                                       (LEMMA "blackened1")
+                                                       (("6"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("7" (ACTION) NIL)
+                                                    ("8" (ACTION) NIL)
+                                                    ("9" (ACTION) NIL)))
+                                                  (|p_inv2|
+                                                   ""
+                                                   (SUBGOALS
+                                                    AUTO-REWRITE-INV-A)
+                                                   (("1"
+                                                     (AUTO-REWRITE
+                                                      "blackened2")
+                                                     (("1"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("2"
+                                                     (AUTO-REWRITE
+                                                      "blackened3")
+                                                     (("2"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("3"
+                                                     (AUTO-REWRITE
+                                                      "blackened6")
+                                                     (("3"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("4" (ACTION) NIL)
+                                                    ("5" (ACTION) NIL)
+                                                    ("6" (ACTION) NIL)
+                                                    ("7"
+                                                     (AUTO-REWRITE
+                                                      "blackened4")
+                                                     (("7"
+                                                       (LEMMA-ACTION)
+                                                       NIL)))
+                                                    ("8"
+                                                     (LEMMA "i_inv1")
+                                                     (("8"
+                                                       (AUTO-REWRITE
+                                                        "blackened5")
+                                                       (("8"
+                                                         (LEMMA-ACTION)
+                                                         NIL)))))
+                                                    ("9" (ACTION) NIL)))
+                                                  (|p_I|
+                                                   ""
+                                                   (LEMMA "p_inv1")
+                                                   ((""
+                                                     (LEMMA "p_inv2")
+                                                     (("" (PRES-ALL) NIL)))))
+                                                  (|inv| "" (INV-ALL) NIL))

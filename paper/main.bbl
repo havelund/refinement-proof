@@ -1,0 +1,65 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{ORSvH95}
+
+\bibitem[AL91]{AL:Mappings}
+M.~Abadi and L.~Lamport.
+\newblock The existence of refinement mappings.
+\newblock {\em Theoretical Computer Science}, 82:253--284, 1991.
+
+\bibitem[BA84]{Ben:GC}
+M.~Ben-Ari.
+\newblock Algorithms for on-the-fly garbage collection.
+\newblock {\em ACM Toplas}, 6, July 1984.
+
+\bibitem[CM88]{CM:UNITY}
+K.M. Chandy and J.~Misra.
+\newblock {\em Parallel Program Design: A Foundation}.
+\newblock Addison Wesley, 1988.
+
+\bibitem[DLM{\etalchar{+}}78]{DLMSS:GC}
+E.~W. Dijkstra, L.~Lamport, A.J. Martin, C.~S. Scholten, and E.~F.~M. Steffens.
+\newblock On-the-fly garbage collection: An exercise in cooperation.
+\newblock {\em ACM}, 21, November 1978.
+
+\bibitem[dS87]{Van:GC}
+J.~L. A.~Van de~Snepscheut.
+\newblock ``algorithms for on-the-fly garbage collection'' revisited.
+\newblock {\em Information Processing Letters}, 24, March 1987.
+
+\bibitem[Hav96]{Hav:GC}
+K.~Havelund.
+\newblock Mechanical verification of a garbage collector.
+\newblock May 1996.
+
+\bibitem[HS96]{HS:BRP}
+K.~Havelund and N.~Shankar.
+\newblock Experiments in theorem proving and model checking for protocol
+  verification.
+\newblock In M-C. Gaudel and J.~Woodcock, editors, {\em FME'96: Industrial
+  Benefit and Advances in Formal Methods}, volume 1051 of {\em Lecture Notes in
+  Computer Science}, pages 662--681. Springer-Verlag, 1996.
+
+\bibitem[Lam94]{TLA:TOPLAS94}
+L.~Lamport.
+\newblock The temporal logic of actions.
+\newblock {\em ACM TOPLAS}, 16(3):872--923, 1994.
+
+\bibitem[ORSvH95]{Owre95:prolegomena}
+S.~Owre, J.~Rushby, N.~Shankar, and F.~von Henke.
+\newblock Formal verification for fault-tolerant architectures: Prolegomena to
+  the design of {PVS}.
+\newblock {\em IEEE Transactions on Software Engineering}, 21(2):107--125,
+  February 1995.
+
+\bibitem[Pix88]{Pix:GC}
+C.~Pixley.
+\newblock An incremental garbage collection algorithm for multi-mutator
+  systems.
+\newblock {\em Distributed Computing}, 3, 1988.
+
+\bibitem[Rus94]{Rus:GC}
+David~M. Russinoff.
+\newblock A mechanically verified incremental garbage collector.
+\newblock {\em Formal Aspects of Computing}, 6:359--390, 1994.
+
+\end{thebibliography}

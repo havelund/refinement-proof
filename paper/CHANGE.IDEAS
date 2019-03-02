@@ -1,0 +1,57 @@
+From shankar@csl.sri.com Sun Sep 10 20:48:23 1995
+Received: from ibp.ibp.fr (ibp.ibp.fr [132.227.60.30]) by monbazillac (8.6.10/8.6.6) with ESMTP id UAA26535 for <havelund@cadillac.ibp.fr>; Sun, 10 Sep 1995 20:48:23 +0200
+Received: from litp.ibp.fr (litp.ibp.fr [132.227.81.1])
+	by ibp.ibp.fr (8.6.12/jtpda-5.0) with ESMTP id UAA16998
+	for <havelund@cadillac.ibp.fr>; Sun, 10 Sep 1995 20:46:34 +0200
+Received: from ibp.ibp.fr (ibp.ibp.fr [132.227.60.30]) by litp.ibp.fr (8.6.10/8.6.10) with ESMTP id UAA25020 for <havelund@litp.ibp.fr>; Sun, 10 Sep 1995 20:46:53 +0200
+Received: from nef.ens.fr (nef.ens.fr [129.199.96.12])
+	by ibp.ibp.fr (8.6.12/jtpda-5.0) with SMTP id UAA16994
+	for <havelund@litp.ibp.fr>; Sun, 10 Sep 1995 20:46:32 +0200
+Received: from dmi.ens.fr by nef.ens.fr (5.65c8/ULM-1.0)
+	Id AA22092 ; Sun, 10 Sep 1995 20:46:31 +0200
+Received: from nef.ens.fr by dmi.ens.fr (5.65c8/ULM-1.0)
+	Id AA10417 ; Sun, 10 Sep 1995 20:46:30 +0200
+Received: from krypton.csl.sri.com by nef.ens.fr (5.65c8/ULM-1.0)
+	Id AA22088 ; Sun, 10 Sep 1995 20:46:22 +0200
+Received: from LOCALHOST.csl.sri.com by krypton.csl.sri.com with SMTP id AA29398
+  (5.65b/IDA-1.4.3 for Klaus.Havelund@ens.fr); Sun, 10 Sep 95 11:46:18 -0700
+Message-Id: <9509101846.AA29398@krypton.csl.sri.com>
+To: Klaus Havelund <Klaus.Havelund@ens.fr>
+Subject: Re: paper 
+In-Reply-To: Your message of "Sun, 10 Sep 1995 18:10:40 +0200."
+             <199509101610.AA08923@dmi.ens.fr> 
+Date: Sun, 10 Sep 1995 11:46:18 -0700
+From: Natarajan Shankar <shankar@krypton.csl.sri.com>
+Status: RO
+
+
+Klaus:
+  I might've overlooked a few things but I hope they
+won't be too disruptive to the reader.  I'll fix it
+and place it on the PVS web page.
+  I won't have very much time to deal with the tech report
+since I have several other hard deadlines staring at me.
+The best I can do is do some light editing.  Would you have some
+time to incorporate some of the text from the short paper
+into the tech report?  In general, I find your writing
+quite agreeable but don't always agree with your choice of
+notation and your LaTeX style.  A few suggestions:
+ 1. Use "foo~\ref{bar}" instead of "foo \ref{bar}"
+ 2. Leave 2 spaces after a period otherwise LaTeX thinks
+    it's an abbreviation.
+ 3. Use \@. for a period preceded by LaTeX stuff otherwise
+    it gets similarly confused.
+ 4. Use ``...'' instead of "...".
+ 5.  Try to use a special font (math or tt) for notation.
+
+On new things: From reading/editing the short paper, I realized
+that I'd like to continue looking at concurrent protocols.
+Find other examples where abstraction is effective, show how
+abstractions can be computed via abstract interpretation,
+and combine all this with compositionality.  I think this
+dovetails with your agenda.
+
+Cheers,
+Shankar
+
+

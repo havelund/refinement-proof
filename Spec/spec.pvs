@@ -1,0 +1,47 @@
+
+Garbage_Collector[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Memory[NODES,SONS,ROOTS]
+
+  State   : TYPE = Memory
+  O_State : TYPE = Memory
+
+  s,s1,s2 : VAR State
+  n,k     : VAR Node
+  i       : VAR Index
+
+  proj(s):O_State = s
+
+  init(s):bool = (s = null_array)
+
+  Rule_mutate(n,i,k)(s):State =
+    IF accessible(k)(s) THEN 
+      set_son(n,i,k)(s)
+    ELSE 
+      s
+    ENDIF
+
+  Rule_append(n)(s):State =
+    IF NOT accessible(n)(s) THEN
+      append_to_free(n)(s)
+    ELSE 
+      s
+    ENDIF
+
+  next(s1,s2):bool =
+    (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1)) OR
+    (EXISTS n: s2 = Rule_append(n)(s1)) OR
+    s2 = s1
+
+END Garbage_Collector
+
+

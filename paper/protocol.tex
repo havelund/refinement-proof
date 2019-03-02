@@ -1,0 +1,155 @@
+
+
+\chap{The Bounded Retransmission Protocol}{protocol}
+
+\renewcommand{\mth}[1]{$#1$}
+
+The bounded retransmission protocol developed at Philips Research
+Laboratory communicates messages  from a  {\em  producer} to a  {\em
+consumer}  over an  unreliable physical  medium that can lose 
+messages.  The protocol  is a
+nontrivial extension  of the  alternating bit
+protocol~\cite{Bartlett69:ABP} that uses timeouts and aborts transmission
+following a bounded number of retransmission attempts.   
+The {\em environment}  of the protocol consists of
+the producer  and the consumer.  The black box view of the system
+is that it accepts requests REQ(\mth{f}) from the producer to transmit
+the file \mth{f}\@.  When transmission of a file
+has been either completed or aborted, the producer receives a
+confirmation CONF(\mth{c}), where \mth{c} is either OK, NOT\_OK, or
+DONT\_KNOW, respectively indicating that the file was successfully
+transmitted, aborted, or that the last message in the file was not
+acknowledged but might have been received by the consumer.
+The consumer either receives an IND\_ERR signal indicating that
+the file transmission was aborted, or an IND(\mth{m}, \mth{i}) signal where
+\mth{m} is the message and \mth{i} is either FIRST, LAST,
+or
+INCOMPLETE
+corresponding to the first, last, or an intermediate message in the file.
+\comment{
+The system inputs a file of messages from
+the producer and transmits these to consumer, one message at a time.
+grouped in files, and files  arrive from the producer, one at
+a time,  and  are then  send  via  the  unreliable  medium, message by
+message,  until   the whole file  has been   transmitted, or until the
+transmission is cancelled due to loss in the unreliable medium.
+}
+
+The protocol consists of a {\em sender}  program at the producer side;
+a {\em  receiver} program  at the  consumer side,  and two channels: a
+message channel K, and an acknowledgment channel
+L.  Both  channels are unreliable in that they can lose
+messages or acknowledgments.    The
+protocol is  pictured in  Figure~\ref{protocol-figure}.  The   sender
+sends each message  over the  channel K  and then waits  for an
+acknowledgment    on    channel L.   If   there is no
+acknowledgment, the sender times  out and retransmits the
+message.   There  is   a fixed  upper   bound on    the  number   of   such
+retransmissions.   Communication is asynchronous: K and
+L are actually unbounded buffers but since there is at most
+one message active in a channel at any point in time, these are modeled here
+for simplicity as one-place buffers.  This simplification
+is also present in the work of Helmink, {\em et al\/}~\cite{HSV:Protocol.Coq}.
+
+\begin{figure}[htb]
+\makebox[\textwidth]{\epsfbox{protocol.figure.ps}}
+\caption{The BRP Protocol}
+\label{protocol-figure}
+\end{figure}
+
+The protocol uses three timers to deal with loss of messages and
+acknowledgments.  A timer has a fixed period $T$ of time associated.  When
+it is {\em set}, a {\em timeout} occurs $T$ time units or more later. The
+first timer in the sender is used to detect the loss of a message or an
+acknowledgment.  It is used as follows: when the sender sends a new
+message over K, timer~1 is set.  The time associated with this
+timer exceeds the time it takes from when a message has been sent over
+K until the corresponding acknowledgment is received over L.
+If an acknowledgment comes back within this time, the timer is {\em
+cleared} (and the next message is sent).  If not, a timeout occurs
+whereupon the message is retransmitted, and the timer is set again.  When
+the retransmission bound has been reached, the sender aborts transmission
+and confirms that the transmission failed.  Either it confirms
+CONF(NOT\_OK) or it confirms CONF(DONT\_KNOW)\@.  Two other
+timers are used to bring the sender and the receiver back in synchrony
+after a file transmission has been aborted by the sender.  We do not model
+the real-time aspects of the protocol but instead represent the timers by
+timer events.  For example, the timeout event which is supposed to detect
+message loss is instead defined to occur when a message is lost.  This
+simplification is also present in Helmink, {\em et
+al\/}~\cite{HSV:Protocol.Coq}\@.
+
+The receiver may also retransmit  acknowledgments.  This  happens  when
+the  receiver gets a 
+message that it has already received once.  The receiver distinguishes
+between an old message and a new  message via the alternating bit (the
+toggle) which is part of the message.
+
+We can now examine the behavior of the protocol for the case when no
+messages or acknowledgments are lost.  The sender sends each individual
+message \mth{m} in the file to the receiver over the channel K in the form
+(first,last,toggle,\mth{m})\@.  If the producer signals
+REQ($f$) where $f$ is $[m_1, m_2, m_3]$, 
+then the sender first sends the tuple (true,false,toggle,$m_1$)
+on channel K\@.  Upon receipt of this message, the receiver signals
+IND($m_1$,FIRST) to the consumer and sends an acknowledgment on channel
+L\@.  The sender then sends the second message as 
+(false,false,$\neg$ toggle,$m_2$).  The receiver correspondingly
+signals IND($m_2$,INCOMPLETE) and acknowledges receipt.
+The sender then sends the last message as 
+(false,true,toggle,$m_3$)\@.  The receiver now 
+signals IND($m_3$,LAST) and acknowledges receipt.  The sender
+on receiving this acknowledgment signals CONF(OK) to confirm
+successful transmission to the producer.
+
+One complication in the protocol is that  upon abortion of a file
+transmission, the sender and the receiver must regain synchrony for the
+next file transmission.  If the retransmission bound for a message has
+been reached without an acknowledgment, then the file transmission is
+aborted.  The sender must then delay for a sufficiently long interval
+before transmitting the next file so that the
+receiver's timer can time out and the receiver can hence determine 
+that file transmission has been aborted.  Another complication is that
+when file transmission is aborted, then it is possible that the next
+message on channel $K$ (namely, the first message of a new file) may not
+have its alternating bit properly toggled.  This is because the receiver
+may have received the earlier message but the sender did not receive an
+acknowledgment.  To cope with this loss of synchronization, the receiver
+resets its toggle bit to that of the first message and uses the bit
+alternation for subsequent messages in the same file.
+
+It is not evident  how to formulate the  correctness criteria for this
+protocol.  First of all, we limit ourselves to safety properties (that
+some property always  holds),   since already these  seem  challenging
+enough  when trying to do  ``real'' proofs.  Liveness properties (that
+some property  eventually holds)  are of  course of big  interest, but
+they are generally   harder  to prove.   Safety  properties  are  also
+sometimes called invariants.   But   even  after  having    restricted
+ourselves to safety properties, the property to prove is not evident.
+
+One  solution  is to state  some invariant  over the  variables of the
+program.  Suppose  that the variables are $x_1$,\ldots,$x_n$,  then
+we could establish some  predicate $P$  over these variables, and
+then show  that $P(x_1,\ldots,x_n)$ always  holds. It is, however,
+difficult  to come up  with  a predicate  $P$  that  gives a good
+intuitive feeling of correctness.
+
+The solution we shall  choose mimics the correctness criteria  defined
+in \cite{HSV:Protocol.Coq},   where  the protocol  is  proved  to be a
+refinement of   a  more  abstract   protocol.  We  shall   not prove a
+refinement, but we shall formulate  the correctness criteria in  terms
+of a more  abstract protocol, the  same as  in \cite{HSV:Protocol.Coq}
+basically.  Instead of proving a  refinement, we let  the
+abstract protocol ``run in  parallel'' with the  concrete one: for every
+occurrence of an external communication (REQ, IND,
+CONF, or IND\_ERR) in the concrete protocol, the abstract 
+protocol analyses whether this move  is allowed, and  a flag is raised
+in case  the ``laws'' of the abstract  protocol are broken.
+
+The   abstract protocol    only  specifies how   the events  REQ($f$),
+IND($m$,$i$), CONF($c$) and IND\_ERR  can occur, ignoring  the details
+of the   channels    K and L. That     is,  it only  focuses    on the
+communications  with  the  environment   according  to the  black  box
+view.  We  shall  see below  how   this is  formulated.  The  parallel
+composition of  the concrete and  the  abstract protocols has the  big
+advantage  that it can  be model checked in the  finite-state case.

@@ -1,0 +1,86 @@
+  inv1(s):bool =
+    I(s) <= NODES AND
+   ((CHI(s)=CHI2 OR CHI(s)=CHI3) IMPLIES I(s) < NODES)
+
+  inv2(s): bool =
+    J(s) <= SONS
+
+  inv3(s):bool =
+    K(s) <= ROOTS
+
+  inv4(s):bool =
+    H(s) <= NODES AND
+    (CHI(s)=CHI5 IMPLIES H(s) < NODES) AND
+    (CHI(s)=CHI6 IMPLIES H(s) = NODES)
+
+  inv5(s):bool =
+    L(s) <= NODES AND
+    (CHI(s)=CHI8 IMPLIES L(s) < NODES)
+
+  inv6(s):bool =
+    Q(s) < NODES
+
+  inv7(s):bool =
+    closed(M(s))
+
+  inv8(s):bool =
+    (CHI(s)=CHI4 OR CHI(s)=CHI5) IMPLIES BC(s) <= blacks(0,H(s))(M(s))
+
+  inv9(s):bool =
+    CHI(s)=CHI6 IMPLIES BC(s) <= blacks(0,NODES)(M(s))
+
+  inv10(s):bool =
+    (CHI(s)=CHI0 OR CHI(s)=CHI1 OR CHI(s)=CHI2 OR CHI(s)=CHI3)
+      IMPLIES
+    OBC(s) <= blacks(0,NODES)(M(s))
+
+  inv11(s):bool =
+    (CHI(s)=CHI4 OR CHI(s)=CHI5 OR CHI(s)=CHI6)
+      IMPLIES
+    OBC(s) <= BC(s) + blacks(H(s),NODES)(M(s))
+
+  inv12(s):bool =
+    BC(s) <= NODES
+
+  inv13(s):bool =
+    CHI(s)=CHI6 IMPLIES OBC(s) <= BC(s)
+
+  inv14(s):bool =
+   (CHI(s)=CHI0 OR CHI(s)=CHI1 OR CHI(s)=CHI2 OR CHI(s)=CHI3 OR 
+    CHI(s)=CHI4 OR CHI(s)=CHI5 OR CHI(s)=CHI6)
+     IMPLIES
+    black_roots(IF CHI(s)=CHI0 THEN K(s) ELSE ROOTS ENDIF)(M(s))
+
+  inv15(s):bool =
+    FORALL (n:Node,i:Index):
+      (((CHI(s)=CHI1 OR CHI(s)=CHI2 OR CHI(s)=CHI3) AND
+         blacks(0,NODES)(M(s)) = OBC(s) AND
+         (n,i) < (I(s),IF CHI(s)=CHI3 THEN J(s) ELSE 0 ENDIF) AND
+         bw(n,i)(M(s)))
+      IMPLIES
+        (MU(s)=MU1 AND son(n,i)(M(s))=Q(s)))
+
+  inv16(s):bool =
+    ((CHI(s)=CHI1 OR CHI(s)=CHI2 OR CHI(s)=CHI3) AND
+      blacks(0,NODES)(M(s)) = OBC(s) AND
+      exists_bw(0,0,I(s),IF CHI(s)=CHI3 THEN J(s) ELSE 0 ENDIF)(M(s)))
+    IMPLIES
+      MU(s)=MU1
+
+  inv17(s):bool =
+    ((CHI(s)=CHI1 OR CHI(s)=CHI2 OR CHI(s)=CHI3) AND
+      blacks(0,NODES)(M(s)) = OBC(s) AND
+      exists_bw(0,0,I(s),IF CHI(s)=CHI3 THEN J(s) ELSE 0 ENDIF)(M(s)))
+    IMPLIES
+      exists_bw(I(s),IF CHI(s)=CHI3 THEN J(s) ELSE 0 ENDIF,NODES,0)(M(s)) 
+
+  inv18(s):bool =
+    ((CHI(s)=CHI4 OR CHI(s)=CHI5 OR CHI(s)=CHI6) AND
+     OBC(s) = BC(s) + blacks(H(s),NODES)(M(s)))
+       IMPLIES
+    blackened(0)(M(s))
+    
+  inv19(s):bool =
+    (CHI(s)=CHI7 OR CHI(s)=CHI8)
+      IMPLIES
+    blackened(L(s))(M(s))

@@ -1,0 +1,210 @@
+% -------------
+% Blacken Roots
+% -------------
+
+% CHI0 : Blacken. 
+
+  Rule_stop_blacken(s):State =
+    IF CHI(s) = CHI0 AND K(s) = ROOTS THEN 
+      s WITH [I := 0,
+              CHI := CHI1]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_blacken(s):State =
+    IF CHI(s) = CHI0 AND K(s) /= ROOTS THEN 
+      s WITH [M := set_colour(K(s),TRUE)(M(s)),
+              K := K(s) + 1,
+              CHI := CHI0]
+    ELSE 
+      s
+    ENDIF
+
+% -------------------
+% Propagate Colouring 
+% -------------------
+
+% CHI1 : Decide whether to continue propagating.
+
+  Rule_stop_propagate(s):State =
+    IF CHI(s) = CHI1 AND I(s) = NODES THEN 
+      s WITH [BC := 0,
+              H := 0,
+              CHI := CHI4]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_propagate(s):State =
+    IF CHI(s) = CHI1 AND I(s) /= NODES THEN
+      s WITH [CHI := CHI2]
+    ELSE 
+      s
+    ENDIF
+\end{smallsession}
+
+\begin{smallsession}
+% CHI2 : (Continue) Check whether node is black.
+
+  Rule_white_node(s):State =
+    IF CHI(s) = CHI2 AND NOT colour(I(s))(M(s)) THEN
+      s WITH [I := I(s) + 1,
+              CHI := CHI1]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_black_node(s):State =
+    IF CHI(s) = CHI2 AND colour(I(s))(M(s)) THEN
+      s WITH [J := 0,
+              CHI := CHI3]
+    ELSE 
+      s
+    ENDIF
+
+% CHI3 : (Node is black) Colour each son of node.
+
+  Rule_stop_colouring_sons(s):State =
+    IF CHI(s) = CHI3 AND J(s) = SONS THEN
+      s WITH [I := I(s) + 1,
+              CHI := CHI1]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_colour_son(s):State =
+    IF CHI(s) = CHI3 AND J(s) /= SONS THEN
+      s WITH [M := set_colour(son(I(s),J(s))(M(s)),TRUE)(M(s)),
+              J := J(s) + 1,
+              CHI := CHI3]
+    ELSE 
+      s
+    ENDIF
+
+% -----------------
+% Count Black Nodes
+% -----------------
+
+% CHI4 : Decide whether to continue counting.
+
+  Rule_stop_counting(s):State =
+    IF CHI(s) = CHI4 AND H(s) = NODES THEN
+      s WITH [CHI := CHI6]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_counting(s):State =
+    IF CHI(s) = CHI4 AND H(s) /= NODES THEN
+      s WITH [CHI := CHI5]
+    ELSE 
+      s
+    ENDIF
+
+% CHI5 : (Continue) Count one up if black.
+
+  Rule_skip_white(s):State =
+    IF CHI(s) = CHI5 AND NOT colour(H(s))(M(s)) THEN
+      s WITH [H := H(s) + 1,
+              CHI := CHI4]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_count_black(s):State =
+    IF CHI(s) = CHI5 AND colour(H(s))(M(s)) THEN
+      s WITH [BC := BC(s) + 1,
+              H := H(s) + 1,
+              CHI := CHI4]
+    ELSE 
+      s
+    ENDIF
+
+% CHI6 : Compare BC and OBC.
+
+  Rule_redo_propagation(s):State =
+    IF CHI(s) = CHI6 AND BC(s) /= OBC(s) THEN
+      s WITH [OBC := BC(s),
+              I := 0,
+              CHI := CHI1]
+
+    ELSE 
+      s
+    ENDIF
+
+  Rule_quit_propagation(s):State =
+    IF CHI(s) = CHI6 AND BC(s) = OBC(s) THEN
+      s WITH [L := 0,
+              CHI := CHI7]
+    ELSE 
+      s
+    ENDIF
+
+% -------------------
+% Append to Free List
+% -------------------
+
+% CHI7 : Decide whether to continue appending.
+
+  Rule_stop_appending(s):State =
+    IF CHI(s) = CHI7 AND L(s) = NODES THEN
+      s WITH [BC := 0,
+              OBC := 0,
+              K := 0,
+              CHI := CHI0]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_appending(s):State =
+    IF CHI(s) = CHI7 AND L(s) /= NODES THEN
+      s WITH [CHI := CHI8]
+    ELSE 
+      s
+    ENDIF
+
+% CHI8 : (Continue) Append if white.
+
+  Rule_black_to_white(s):State =
+    IF CHI(s) = CHI8 AND colour(L(s))(M(s)) THEN
+      s WITH [M := set_colour(L(s),FALSE)(M(s)),
+              L := L(s) + 1,
+              CHI := CHI7]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_append_white(s):State =
+    IF CHI(s) = CHI8 AND NOT colour(L(s))(M(s)) THEN
+      s WITH [M := append_to_free(L(s))(M(s)),
+              L := L(s) + 1,
+              CHI := CHI7]
+    ELSE 
+      s
+    ENDIF
+
+% -------------------------
+% Combining COLLECTOR Rules
+% -------------------------
+
+  COLLECTOR(s1,s2):bool =
+       s2 = Rule_stop_blacken(s1)
+    OR s2 = Rule_blacken(s1)
+    OR s2 = Rule_stop_propagate(s1)
+    OR s2 = Rule_continue_propagate(s1)
+    OR s2 = Rule_white_node(s1)
+    OR s2 = Rule_black_node(s1)
+    OR s2 = Rule_stop_colouring_sons(s1)
+    OR s2 = Rule_colour_son(s1)
+    OR s2 = Rule_stop_counting(s1)
+    OR s2 = Rule_continue_counting(s1)
+    OR s2 = Rule_skip_white(s1)
+    OR s2 = Rule_count_black(s1)
+    OR s2 = Rule_redo_propagation(s1)
+    OR s2 = Rule_quit_propagation(s1)
+    OR s2 = Rule_stop_appending(s1)
+    OR s2 = Rule_continue_appending(s1)
+    OR s2 = Rule_black_to_white(s1)
+    OR s2 = Rule_append_white(s1)
+

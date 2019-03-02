@@ -1,0 +1,134 @@
+% longfig.sty
+%
+% Derived (by John Rushby) from longtab.sty, which is a modification
+% (by John Rushby) of supertabular.sty by Theo Jurriens
+% Allows figures to span several pages.
+%
+% Addition, by Sam Owre: \breakfig forces a new page at that point.
+%
+%
+% *******************************************************************
+%
+% New environment: \begin{longfigure}{|l|r|} ... \end{longfigure}
+%
+% Allows figures to span several pages
+%
+% NB: -------> End each line with \nextline <-------
+%
+% New commands (should precede the longfigure environment):
+%
+% \figurehead{foo} : the string to start each sub-figure (deflt \begin{alltt})
+% \figuretail{foo} : the string to end each sub-figure (default \end{alltt})
+% \figurecap{foo}  : the caption of the figure (default "Untitled")
+% \figurelabel{foo}: the label for the figure (default longfiglab)
+%
+% *******************************************************************
+%
+\def\@figurehead{\begin{framedminipage}{\textwidth}\begin{alltt}}
+\def\figurehead#1{\gdef\@figurehead{#1}}
+\def\@figuretail{\end{alltt}\end{framedminipage}}
+\def\figuretail#1{\gdef\@figuretail{#1}}
+\def\@figurecap{Untitled}
+\def\figurecap#1{\gdef\@figurecap{#1}}
+\def\@figurelabel{longfiglab}
+\def\figurelabel#1{\gdef\@figurelabel{#1}}
+\newcount\numline  %
+\newcount\maxline %
+%
+\def\calmaxline{\global\maxline=\textheight
+\global\divide\maxline by \baselineskip
+\global\multiply\maxline by 9
+\global\divide\maxline by 10
+}
+% 10 % of page is for figureheader
+%
+\newenvironment{boxedlongfigure}{  %
+\numline=0       %
+\calmaxline      %
+\begin{figure}[hbtp]\begin{center}\hrule\@figurehead}{\@figuretail\hrule \end{center}\caption{\@figurecap }\label{\@figurelabel}\end{figure}}%
+%
+%
+\def\nextline{\global\advance\numline by 1
+\ifnum\numline=\maxline\breakfig\fi}%
+
+\def\breakfig{
+
+        \@figuretail %
+	\end{center} %
+	\caption{\@figurecap\  (continues)}%
+	\end{figure}  \addtocounter{figure}{-1}%%
+        \clearpage   %
+	\begin{figure}[t] %
+	\begin{center} %
+        \@figurehead %
+        \global\numline=0 %
+}%
+%%
+%% cut here, start of example file
+%%
+%\documentstyle[alltt,longfig]{article}
+%\newcommand{\hozline}{{\rule{\textwidth}{0.4mm}}}
+%\begin{document}
+%
+%%\figurecap{{\sc Ehdm} Identifers used in the Specification}
+%
+%\figurelabel{numtab}
+%\figurehead{\hozline\begin{alltt}\small\tt}
+%\figuretail{\hozline\end{alltt}}
+%
+%\begin{longfigure}
+%stackmap_map: MODULE [etype: TYPE, udef: etype]\nextline
+%\nextline
+%USING stackrep[etype, udef]\nextline
+%\nextline
+%EXPORTING  WITH stackrep[etype, udef]\nextline
+%\nextline
+%THEORY\nextline
+%\nextline
+%  e: VAR etype\nextline
+%  s: VAR rep_stack\nextline
+%  x1: VAR rep_stack\nextline
+%  x2: VAR rep_stack\nextline
+%  x3: VAR rep_stack \nextline
+%\nextline
+%  concrete_equality_isreflexive: FORMULA concrete_equality(x1, x1)\nextline
+%\nextline
+%  concrete_equality_issymmetric: FORMULA\nextline
+%    concrete_equality(x1, x2) IMPLIES concrete_equality(x2, x1)\nextline
+%\nextline
+%  concrete_equality_istransitive: FORMULA\nextline
+%    concrete_equality(x1, x2) AND concrete_equality(x2, x3)\nextline
+%      IMPLIES concrete_equality(x1, x3)\nextline
+%\nextline
+%  isnewnew: FORMULA rep_isnewstack(rep_newstack)\nextline
+%  isnewpush: FORMULA NOT rep_isnewstack(rep_push(s, e))\nextline
+%  popnew: FORMULA concrete_equality(rep_pop(rep_newstack), rep_newstack)\nextline
+%  topnew: FORMULA rep_top(rep_newstack) = udef\nextline
+%  poppush: FORMULA concrete_equality(rep_pop(rep_push(s, e)), s)\nextline
+%  toppush: FORMULA rep_top(rep_push(s, e)) = e\nextline
+%\nextline
+%PROOF\nextline
+%\nextline
+%  concrete_equality_isreflexive_PROOF: PROVE\nextline
+%    concrete_equality_isreflexive\nextline
+%\nextline
+%  concrete_equality_issymmetric_PROOF: PROVE\nextline
+%    concrete_equality_issymmetric\nextline
+%\nextline
+%  concrete_equality_istransitive_PROOF: PROVE\nextline
+%    concrete_equality_istransitive\nextline
+%\nextline
+%  isnewnew_PROOF: PROVE isnewnew\nextline
+%  isnewpush_PROOF: PROVE isnewpush\nextline
+%  popnew_PROOF: PROVE popnew\nextline
+%  topnew_PROOF: PROVE topnew\nextline
+%  poppush_PROOF: PROVE poppush\nextline
+%  toppush_PROOF: PROVE toppush\nextline
+%\nextline
+%END stackmap_map\nextline
+%\end{longfigure}
+%The specification in Figure~\ref{numtab} is of little interest.
+%\end{document}
+%%
+%%end of example
+%

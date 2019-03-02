@@ -1,0 +1,47 @@
+
+
+\newpage
+\subsection{Final Refinement Theorem}
+
+\begin{alltt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Composed_Refinement :                                            %
+%   States the final correctness criteria in theorem ``ref'',      %
+%   which says that the third implementation refines the top-level %
+%   specification. The proof uses the transitivity property of the %
+%   refinement relation.                                           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+Composed_Refinement[
+  NODES : posnat,
+  SONS  : posnat,
+  ROOTS : posnat] : THEORY
+ 
+BEGIN
+ 
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Refinement1[NODES,SONS,ROOTS]
+  IMPORTING Refinement2[NODES,SONS,ROOTS]
+  IMPORTING Refinement3[NODES,SONS,ROOTS]
+
+  IMPORTING Refine_Predicate
+  IMPORTING Refine_Predicate_Transitive
+
+  ref2 : LEMMA 
+    refines[S.O_State,S.State,I2.State]
+      (I2.init,I2.next,I2.proj)(S.init,S.next,S.proj)
+
+  ref : THEOREM 
+    refines[S.O_State,S.State,I3.State]
+      (I3.init,I3.next,I3.proj)(S.init,S.next,S.proj)
+
+END Composed_Refinement
+\end{alltt}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

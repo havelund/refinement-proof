@@ -1,0 +1,20 @@
+
+OK 1. Explain why our approach is better than that of the Boyer-Moore Proof.
+      ... because we formulate the correctness criteria as an abstract 
+      machine, which is more abstract than the invariant referring to
+      particular internal locations in the code.
+
+      We also formalize refinement mappings.
+
+OK 2. Compare with the UNITY proof
+
+OK 3. Give an informal argument
+
+   4. Russinoffs counter example
+
+Ok 5. Give the specification its own chapter.
+
+OK 6. Explain that you don't get rid of invariant generation
+
+OK 7. Refer to the BRP protocol
+

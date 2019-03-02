@@ -1,0 +1,371 @@
+
+Garbage_Collector3[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
+  
+  MuPC    : TYPE = {MUTATE,COLOUR}
+  CoPC    : TYPE = {COLOUR_ROOTS,TEST_I,TEST_COLOUR,COLOUR_SONS,
+                    TEST_H,COUNT,COMPARE,TEST_L,APPEND}
+
+  State   : TYPE = [# MU : MuPC, CHI : CoPC, 
+                      Q : nat, BC : nat, OBC : nat,
+                      H : nat, I : nat, J : nat, K : nat, L : nat,  
+                      C : Colours, M : Memory #]
+
+  O_State : TYPE = Memory
+
+  s,s1,s2 : VAR State
+  n,k     : VAR Node
+  i       : VAR Index
+
+  proj(s):O_State = M(s)
+
+  init(s):bool = 
+      MU(s) = MUTATE
+    & CHI(s) = COLOUR_ROOTS
+    & OBC(s) = 0
+    & K(s) = 0 
+    & M(s) = null_array
+
+  %%%%%%%%%%%%%%%%%%%%%%%
+  % The MUTATOR Process %
+  %%%%%%%%%%%%%%%%%%%%%%%
+
+  Rule_mutate(n,i,k)(s):State =
+    IF MU(s) = MUTATE AND accessible(k)(M(s)) THEN 
+      s WITH [M := set_son(n,i,k)(M(s)),
+              Q := k,
+              MU := COLOUR]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_colour_target(s):State =
+    IF MU(s) = COLOUR AND Q(s) < NODES THEN 
+      s WITH [C := set_colour(Q(s),TRUE)(C(s)),
+              MU := MUTATE]
+    ELSE 
+      s
+    ENDIF
+
+  MUTATOR(s1,s2):bool =
+       (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1))
+    OR s2 = Rule_colour_target(s1)
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  % The COLLECTOR Process %
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+
+  Rule_stop_colouring_roots(s):State =
+    IF CHI(s) = COLOUR_ROOTS AND K(s) = ROOTS THEN
+      s WITH [I := 0, CHI := TEST_I]
+    ELSE
+      s
+    ENDIF
+
+  Rule_colour_root(s):State =
+    IF CHI(s) = COLOUR_ROOTS AND K(s) < ROOTS THEN
+      s WITH [C := set_colour(K(s),TRUE)(C(s)),
+              K := K(s) + 1]
+    ELSE
+      s
+    ENDIF
+
+  Rule_stop_propagating(s):State =
+    IF CHI(s) = TEST_I AND I(s) = NODES THEN 
+      s WITH [BC := 0, H := 0, CHI := TEST_H]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_propagating(s):State =
+    IF CHI(s) = TEST_I AND I(s) < NODES THEN
+      s WITH [CHI := TEST_COLOUR]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_white_node(s):State =
+    IF CHI(s) = TEST_COLOUR AND I(s) < NODES AND NOT colour(I(s))(C(s)) THEN
+      s WITH [I := I(s) + 1, CHI := TEST_I]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_black_node(s):State =
+    IF CHI(s) = TEST_COLOUR AND I(s) < NODES AND colour(I(s))(C(s)) THEN
+      s WITH [J := 0, CHI := COLOUR_SONS]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_stop_colouring_sons(s):State =
+    IF CHI(s) = COLOUR_SONS AND J(s) = SONS THEN
+      s WITH [I := I(s) + 1, CHI := TEST_I]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_colour_son(s):State =
+    IF CHI(s) = COLOUR_SONS AND I(s) < NODES AND J(s) < SONS THEN
+      s WITH [C := set_colour(son(I(s),J(s))(M(s)),TRUE)(C(s)), 
+              J := J(s) + 1]
+    ELSE
+      s
+    ENDIF
+
+  Rule_stop_counting(s):State =
+    IF CHI(s) = TEST_H AND H(s) = NODES THEN
+      s WITH [CHI := COMPARE]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_counting(s):State =
+    IF CHI(s) = TEST_H AND H(s) /= NODES THEN
+      s WITH [CHI := COUNT]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_skip_white(s):State =
+    IF CHI(s) = COUNT AND H(s) < NODES AND NOT colour(H(s))(C(s)) THEN
+      s WITH [H := H(s) + 1, CHI := TEST_H]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_count_black(s):State =
+    IF CHI(s) = COUNT AND H(s) < NODES AND colour(H(s))(C(s)) THEN
+      s WITH [BC := BC(s) + 1, H := H(s) + 1, CHI := TEST_H]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_stop_colouring(s):State =
+    IF CHI(s) = COMPARE AND BC(s) = OBC(s) THEN
+      s WITH [L := 0, CHI := TEST_L]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_continue_colouring(s):State =
+    IF CHI(s) = COMPARE AND BC(s) /= OBC(s) THEN
+      s WITH [OBC := BC(s), I := 0, CHI := TEST_I]
+    ELSE 
+      s
+    ENDIF
+
+  Rule_stop_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) = NODES THEN
+      s WITH [BC := 0, OBC := 0, K := 0, CHI := COLOUR_ROOTS]
+    ELSE
+      s
+    ENDIF
+
+  Rule_continue_appending(s):State =
+    IF CHI(s) = TEST_L AND L(s) < NODES THEN
+      s WITH [CHI := APPEND]
+    ELSE 
+      s 
+    ENDIF
+
+  Rule_black_to_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND colour(L(s))(C(s)) THEN
+      s WITH [C := set_colour(L(s),FALSE)(C(s)),
+              L := L(s)+1, CHI := TEST_L]
+    ELSE 
+      s 
+    ENDIF
+
+  Rule_append_white(s):State =
+    IF CHI(s) = APPEND AND L(s) < NODES AND NOT colour(L(s))(C(s)) THEN
+      s WITH [M := append_to_free(L(s))(M(s)),
+              L := L(s) + 1, CHI := TEST_L]
+    ELSE 
+      s 
+    ENDIF
+
+  COLLECTOR(s1,s2):bool =
+     s2 = Rule_stop_colouring_roots(s1)
+  OR s2 = Rule_colour_root(s1)
+  OR s2 = Rule_stop_propagating(s1)
+  OR s2 = Rule_continue_propagating(s1)
+  OR s2 = Rule_white_node(s1)
+  OR s2 = Rule_black_node(s1)
+  OR s2 = Rule_stop_colouring_sons(s1)
+  OR s2 = Rule_colour_son(s1)
+  OR s2 = Rule_stop_counting(s1)
+  OR s2 = Rule_continue_counting(s1)
+  OR s2 = Rule_skip_white(s1)
+  OR s2 = Rule_count_black(s1)
+  OR s2 = Rule_stop_colouring(s1)
+  OR s2 = Rule_continue_colouring(s1)
+  OR s2 = Rule_stop_appending(s1)
+  OR s2 = Rule_continue_appending(s1)
+  OR s2 = Rule_black_to_white(s1)
+  OR s2 = Rule_append_white(s1)
+
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % The Transition Relation %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  next(s1,s2):bool =
+    MUTATOR(s1,s2) OR
+    COLLECTOR(s1,s2) OR
+    s2 = s1
+
+END Garbage_Collector3
+
+
+Garbage_Collector3_Inv[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Memory_Properties[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector3[NODES,SONS,ROOTS]
+  IMPORTING Invariant_Predicates[State]
+
+  s : VAR State
+
+  inv1(s):bool =
+    CHI(s)=COLOUR_SONS AND I(s) < NODES IMPLIES colour(I(s))(C(s))
+
+  inv2(s):bool =
+    CHI(s)=COMPARE AND BC(s)=OBC(s) IMPLIES NOT exists_bw(C(s),M(s))
+
+  inv3(s):bool =
+    (CHI(s)=COLOUR_ROOTS OR 
+     CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS OR
+     CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE)
+       IMPLIES
+     black_roots(IF CHI(s)=COLOUR_ROOTS THEN K(s) ELSE ROOTS ENDIF)(C(s))
+
+  inv4(s):bool =
+    MU(s)=COLOUR AND Q(s) < NODES IMPLIES accessible(Q(s))(M(s))
+
+  inv5(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE) AND
+    OBC(s) = BC(s) + blacks(H(s),NODES)(C(s))
+      IMPLIES
+    NOT exists_bw(C(s),M(s))
+
+  inv6(s):bool =
+    CHI(s)=APPEND AND L(s) < NODES AND accessible(L(s))(M(s))
+      IMPLIES
+    colour(L(s))(C(s))
+
+  inv7(s):bool =
+    ((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+      OBC(s) = blacks(0,NODES)(C(s)) AND
+      exists_bw(0,0,I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF)(C(s),M(s)))
+    IMPLIES
+      exists_bw(I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF,NODES,0)
+        (C(s),M(s))
+
+  inv8(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT OR CHI(s)=COMPARE)
+      IMPLIES
+    OBC(s) <= BC(s) + blacks(H(s),NODES)(C(s))
+
+  inv9(s):bool =
+    ((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+      OBC(s) = blacks(0,NODES)(C(s)) AND
+      exists_bw(0,0,I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF)(C(s),M(s)))
+    IMPLIES
+      MU(s)=COLOUR
+
+  inv10(s):bool =
+    (CHI(s)=COLOUR_ROOTS OR 
+     CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS)
+      IMPLIES
+    OBC(s) <= blacks(0,NODES)(C(s))
+
+  inv11(s):bool =
+    FORALL (n:Node,i:Index):
+      (((CHI(s)=TEST_I OR CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) AND
+          OBC(s) = blacks(0,NODES)(C(s)) AND
+         (n,i) < (I(s),IF CHI(s)=COLOUR_SONS THEN J(s) ELSE 0 ENDIF) AND
+         bw(n,i)(C(s),M(s)))
+      IMPLIES
+        (MU(s)=COLOUR AND son(n,i)(M(s))=Q(s)))
+
+  inv12(s):bool =
+    ((CHI(s)=TEST_COLOUR OR CHI(s)=COLOUR_SONS) IMPLIES I(s) < NODES)
+
+  inv13(s):bool =
+    (CHI(s)=TEST_L OR CHI(s)=APPEND)
+      IMPLIES
+    blackened(L(s))(C(s),M(s))
+
+  inv14(s):bool =
+    CHI(s)=COMPARE IMPLIES BC(s) <= blacks(0,NODES)(C(s))
+
+  inv15(s):bool =
+    (CHI(s)=TEST_H OR CHI(s)=COUNT) IMPLIES BC(s) <= blacks(0,H(s))(C(s))
+
+  I : pred[State] = 
+    inv1 & inv2  & inv3  & inv4  & inv5  & inv6  & inv7 & 
+    inv8 & inv10 & inv11 & inv12 & inv13 & inv14 & inv15
+
+  pi : pred[pred[State]] = preserved(init,next)(I)
+
+  c_inv9 : LEMMA inv11 IMPLIES inv9
+
+  i_inv1  : LEMMA I IMPLIES inv1
+  i_inv2  : LEMMA I IMPLIES inv2
+  i_inv3  : LEMMA I IMPLIES inv3
+  i_inv4  : LEMMA I IMPLIES inv4
+  i_inv5  : LEMMA I IMPLIES inv5
+  i_inv6  : LEMMA I IMPLIES inv6
+  i_inv7  : LEMMA I IMPLIES inv7
+  i_inv8  : LEMMA I IMPLIES inv8
+  i_inv9  : LEMMA I IMPLIES inv9
+  i_inv10 : LEMMA I IMPLIES inv10
+  i_inv11 : LEMMA I IMPLIES inv11
+  i_inv12 : LEMMA I IMPLIES inv12
+  i_inv13 : LEMMA I IMPLIES inv13
+  i_inv14 : LEMMA I IMPLIES inv14
+  i_inv15 : LEMMA I IMPLIES inv15
+
+  p_inv1  : LEMMA pi(inv1)
+  p_inv2  : LEMMA pi(inv2)
+  p_inv3  : LEMMA pi(inv3)
+  p_inv4  : LEMMA pi(inv4)
+  p_inv5  : LEMMA pi(inv5)
+  p_inv6  : LEMMA pi(inv6)
+  p_inv7  : LEMMA pi(inv7)
+  p_inv8  : LEMMA pi(inv8)
+  p_inv10 : LEMMA pi(inv10)
+  p_inv11 : LEMMA pi(inv11)
+  p_inv12 : LEMMA pi(inv12)
+  p_inv13 : LEMMA pi(inv13)
+  p_inv14 : LEMMA pi(inv14)
+  p_inv15 : LEMMA pi(inv15)
+
+  p_I : LEMMA pi(I)  
+
+  inv : LEMMA invariant(init,next)(I)
+
+END Garbage_Collector3_Inv
+
+
+

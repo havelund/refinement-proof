@@ -1,0 +1,121 @@
+
+Specification:
+==============
+
+accessible(n:Node):bool;
+set_son(n:Node,i:Index,k:Node):void;
+append_to_free(n:Node):void;
+
+Mutator:
+--------
+
+  MUTATE :
+    choose n,i,k where accessible(k) -> set_son(n,i,k); goto MUTATE;
+
+Collector:
+----------
+
+  COLLECT :
+    choose n where not accessible(n) -> append_to_free(n); goto COLLECT;
+
+
+Refinement1:
+============
+
+type Colour = {black,white}
+set_colour(n:Node,c:Colour):void;
+colour(n:Node):Colour;
+blackened():bool;
+append_to_free(n:Node):void;
+
+Mutator:
+--------
+
+  MUTATE :
+    choose n,i,k where accessible(k) -> set_son(n,i,k); Q := n; goto COLOUR;
+  COLOUR :  
+    true -> set_colour(Q,black); goto MUTATE;
+
+Collector:
+----------
+
+  COLOUR :
+    choose n -> set_colour(n,black); goto COLOUR;
+    blackened() -> L := 0; goto TEST_L;
+  TEST_L :
+    L = NODES -> goto COLOUR;
+    L < NODES -> goto APPEND;
+  APPEND :
+    not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    colour(L) -> set_colour(L,white); L := L + 1; goto TEST_L; 
+
+
+Refinement2:
+============
+
+exists_bw():bool;
+bw(n:Node,i:Index):bool;
+son(n:Node,i:Index):Node;
+
+Mutator:
+--------
+
+  Unchanged.
+
+Collector:
+----------
+
+  COLOUR_ROOTS :
+    K = ROOTS -> goto PROPAGATE;
+    K < ROOTS -> set_colour(K,black); goto COLOUR_ROOTS;
+  PROPAGATE :
+    choose n,i where bw(n,i) -> set_colour(son(n,i),black); goto PROPAGATE;
+    not exists_bw() -> L := 0; goto TEST_L;
+  TEST_L :
+    L = NODES -> K := 0; goto COLOUR_ROOTS;
+    L < NODES -> goto APPEND;
+  APPEND :
+    not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    colour(L) -> set_colour(L,white); L := L + 1; goto TEST_L; 
+
+
+Refinement3:
+============
+
+Mutator:
+--------
+
+  Unchanged.
+
+Collector:
+----------
+
+  COLOUR_ROOTS :
+    K = ROOTS -> I := 0; goto TEST_I;
+    K < ROOTS -> set_colour(K,true); K := K + 1; goto COLOUR_ROOTS;
+  TEST_I :
+    I = NODES -> BC := 0; H := 0; goto TEST_H;
+    I < NODES -> goto TEST_COLOUR;
+  TEST_COLOUR :
+    not colour(I) -> I := I + 1; goto TEST_I;
+    colour(I)  -> J := 0; goto COLOUR_SONS;
+  COLOUR_SONS :
+    J = SONS -> I := I + 1; goto TEST_I;
+    J < SONS -> set_colour(son(I,J),black); goto COLOUR_SONS;
+  TEST_H :
+    H = NODES -> goto COMPARE;
+    H < NODES -> goto COUNT;
+  COUNT :
+    not colour(H) -> H := H +1; goto TEST_H;
+    colour(H) -> BC := BC + 1; H := H +1; goto TEST_H;
+  COMPARE :
+    BC = OBC -> L := 0; goto TEST_L;
+    BC /= OBC -> OBC := BD; I := 0; goto TEST_I;
+  TEST_L :
+    L = NODES -> BC := 0; OBC := 0; K := 0; goto TEST_I;
+    L < NODES -> goto APPEND;
+  APPEND :
+    not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    colour(L) -> set_colour(L,white); L := L + 1; goto TEST_L; 
+
+

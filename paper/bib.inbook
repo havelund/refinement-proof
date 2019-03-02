@@ -1,0 +1,15 @@
+@inbook{#,
+  author    = {#},
+% editor    = {#},
+  title     = {#},
+  chapter   = {#},
+  pages     = {#},
+  publisher = {#},
+  year      = {#},
+%  volume   = {#},
+%  series   = {#},
+%  address  = {#},
+%  edition  = {#},
+%  month    = {#},
+%  note     = {#}
+}

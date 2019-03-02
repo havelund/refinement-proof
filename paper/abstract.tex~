@@ -1,0 +1,30 @@
+% Master File: main.tex
+
+\begin{abstract}
+  
+  We describe how the PVS verification system  has been used to verify
+  a  safety  property of a widely studied garbage collection  algorithm.
+  The safety property  asserts  that    ``nothing  but garbage  is    ever
+  collected.''  The garbage  collection algorithm and  its composition
+  with  the user program can be regarded  as a concurrent  system with two
+  processes working on  a shared memory.   Such concurrent systems are
+  encoded in  PVS as state transition systems using a
+  model similar to TLA~\cite{TLA:TOPLAS94}.  The  safety  criterion is
+  formulated  as a 
+  refinement and proved  using  refinement  mappings.    
+  Russinoff~\cite{Rus:GC}  has    verified the algorithm   in  the Boyer-Moore
+  prover, but his proof is not  based on refinement and 
+  safety property  cannot be appreciated  without a  glass box view of
+  the   workings of the algorithm.    Using
+  refinement, however,  the safety criterion makes sense independent of
+  the garbage collection algorithm.   As a by-product, we encode  a
+  slightly modified version of Lamport's refinement mappings in PVS.
+  
+\end{abstract}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+

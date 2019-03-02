@@ -1,0 +1,32 @@
+\contentsline {section}{\numberline {1}The Problem}{3}
+\contentsline {section}{\numberline {2}The History of the Proof}{5}
+\contentsline {section}{\numberline {3}Structure of Report}{6}
+\contentsline {section}{\numberline {4}First Refinement : Introducing Colours}{14}
+\contentsline {subsection}{\numberline {4.1}The Program}{14}
+\contentsline {subsection}{\numberline {4.2}The Refinement Proof}{15}
+\contentsline {section}{\numberline {5}Second Refinement : Colouring by Propagation}{17}
+\contentsline {subsection}{\numberline {5.1}The Program}{17}
+\contentsline {subsection}{\numberline {5.2}The Refinement Proof}{18}
+\contentsline {section}{\numberline {6}Third Refinement : Propagation by Scans}{18}
+\contentsline {subsection}{\numberline {6.1}The Program}{18}
+\contentsline {subsection}{\numberline {6.2}The Refinement Proof}{19}
+\contentsline {section}{\numberline {7}Transition Systems and their Refinement}{20}
+\contentsline {section}{\numberline {8}The Specification}{21}
+\contentsline {subsection}{\numberline {8.1}The Memory}{22}
+\contentsline {subsection}{\numberline {8.2}The Mutator and the Collector}{22}
+\contentsline {section}{\numberline {9}The First Refinement}{23}
+\contentsline {subsection}{\numberline {9.1}The Coloured Memory}{23}
+\contentsline {subsection}{\numberline {9.2}The Refined Mutator and Collector}{24}
+\contentsline {section}{\numberline {10}Function Lemmas}{25}
+\contentsline {section}{\numberline {11}Invariant Lemmas}{25}
+\contentsline {section}{\numberline {12}The Refinement Lemma}{26}
+\contentsline {section}{\numberline {13}Composing the Refinements}{26}
+\contentsline {section}{\numberline {14}Comparison with Two Mechanized Proofs}{44}
+\contentsline {section}{\numberline {15}Comparison with the Manual UNITY Proof}{45}
+\contentsline {subsection}{\numberline {15.1}The Superposition Technique}{45}
+\contentsline {subsection}{\numberline {15.2}Overview of the Proof}{46}
+\contentsline {subsection}{\numberline {15.3}The Initial Program}{46}
+\contentsline {subsubsection}{\numberline {15.3.1}The First Superposition}{46}
+\contentsline {subsubsection}{\numberline {15.3.2}The Second Superposition}{47}
+\contentsline {subsection}{\numberline {15.4}The Proof}{47}
+\contentsline {paragraph}{Acknowledgments}{48}

@@ -1,0 +1,404 @@
+
+\chap{State Exploration in \Murphi}{murphi}
+
+In this section  we present  the  formulation of the protocol  and its
+correctness   criteria    in  \Murphi{}~\cite{MDC:Murphi},    a  state
+exploration tool for finite-state transition systems.  First we give a
+short introduction to  \Murphi, then we present  the protocol  and the
+correctness criteria.  The full  formal \Murphi{} program is contained
+in appendix~\ref{app-state-exploration}.
+
+\section{Short Introduction to \Murphi}
+
+\Murphi{} uses  a program model that is similar to
+Unity~\cite{CM:UNITY}\@. A  \Murphi{}   program   has  three
+components: a declaration  of the global  variables,  a description of
+the initial   state, and  a collection   of transition   rules.   Each
+transition rule is a guarded command that consists  of a boolean guard
+expression over the global variables, and a deterministic statement that changes the
+global variables.    Transition rules can include
+{\tt  assert}  statements   that  terminate execution  when the asserted
+condition is falsified.  We use \Murphi{} as an effective debugging tool
+for testing invariance assertions.  
+
+An execution of  a \Murphi{} program is  obtained  by repeatedly 
+ {\it (1) arbitrarily   selecting one of the  transition  rules
+where the boolean guard is true in the current state;  (2) executing the
+statement of the chosen   transition rule}\@.   The statement  is executed
+atomically: no other transition rules  are executed in parallel. 
+Thus state transitions are interleaving and  processes
+communicate  via  shared variables.   The   notion of process  is  not
+formally  supported,  but may be   thought  of  as   a subset of   the
+transition rules.  The \Murphi{} verifier tries to
+explore all reachable states in order to ensure that all {\tt assert}
+statements hold.  If a violation is detected, \Murphi{}
+generates a violating trace.
+
+
+\section{Programming the Protocol}
+
+We shall only present part of the  protocol in this section.  The full
+protocol is contained  in appendix~\ref{app-murphi}.  First we present
+some shared declarations, then part of the program for the sender, and
+finally the abstract specification  of the  protocol. The receiver  is
+modeled in a style similar to the sender.
+
+
+\subsection{Parameters and Shared Variables}
+
+The protocol we have described in the previous  section can be said to
+be  parameterized   with  three   informations:   the  kind  of   data
+transmitted, the size of files (how many messages in each file), and
+finally the  number of retransmissions (\name{max})  performed  by the
+sender  before it gives up a file. In fact, it turns out that when we
+choose the  data domain to be finite, and if we let the size of files
+be limited and choose some value for  \name{max},  then the protocol
+gets finite-state and it can be formulated and verified in \Murphi. We
+choose to let data be booleans, and we choose the size of files to be
+3, and we choose the retransmission limit to be 2:
+
+\begin{alltt}
+  Type
+    Data : boolean;
+  Const 
+    last : 3;
+    max  : 2;
+\end{alltt}
+
+A file is modeled as an array of data, of size 3, and a variable
+contains the current number of retransmissions tried:
+
+\begin{alltt}
+  Type
+    File : Array [1..last] Of Data;
+  Var
+    rn : 0..max;
+\end{alltt}
+
+Recall that channel \name{K} carried tuples containing a first, last, toggle
+and data field. Channel \name{L} just carried a signal:
+
+\begin{alltt}
+  Type
+    Msg  : Record 
+             first, last, toggle : boolean;
+             data : Data 
+           End;
+  Var
+    K : Msg;
+    K_full : boolean;
+    L : boolean;
+\end{alltt}
+
+Here three global variables are declared. Both channels  are  declared
+as  variables. When the sender sends  a message, it  just  writes  to
+{\tt K}, and when  the  receiver reads  this  message  it just  reads
+{\tt K}. The flag {\tt K\_full} is raised when some message has been
+written to {\tt K}.  Hence, the sender sets it  to  true when writing
+to  {\tt K}, and the receiver  sets it to  false  when  reading  from
+{\tt K}. This flag-technique is general and used for variables that
+play the role of ``channels''.
+
+
+\subsection{The Sender}
+
+The sender control is managed via a program counter:
+
+\begin{alltt}
+  Type
+    Spc  : Enum\{WR, SF, WA, SC, WT2\};
+  Var
+    spc : Spc;
+\end{alltt}
+
+When  the sender waits   for a new  file,  {\tt spc} equals {\tt  WF}.
+Value  {\tt SF}: the sender  is ready to send  the  next message, just
+waiting for the {\tt K\_full} flag to be  false.  Value {\tt WA}: wait
+for an acknowledgment  to come back.  Value {\tt SC}:  ready to send a
+confirmation. Value {\tt WT2}: wait for timer 2 to timeout (which will
+eventually happen when the receiver has realized that the current file
+has been cancelled by the sender).
+
+Requests to send files are written by the environment into the variable
+{\tt req}:
+
+\begin{alltt}
+  Var
+    req : File;
+    req_full : boolean;
+\end{alltt}
+
+When the sender reads this request, it stores the request in it's own
+local request holder {\tt file}:
+
+\begin{alltt}
+  Var
+    file : File;
+    head : 1..last+1;
+\end{alltt}
+
+The {\tt head} points at any time to the  message in the file that
+is currently being transmitted. In case the pointer exceeds {\tt last},
+the file is regarded empty.
+
+The sender  program  contains two  further  variables,  one indicating
+whether the  current message is the  first one, and one indicating the
+``alternating bit'' used to distinguish messages:
+
+\begin{alltt}
+  Var
+    sfirst  : boolean;
+    stoggle : boolean;
+\end{alltt}
+
+Concerning  timers,  the sender    uses   two and the   receiver  uses
+one. \Murphi{}  is not  able to  deal with  timers explicitly, so they
+have to  be modeled using the  existing technology of transition rules
+and global variables. Also in \cite{HSV:Protocol.Coq} timers have been
+modeled, however, we  use a different   and in our opinion  more clear
+modeling. For each timer, there are  two variables. For example for
+timer 1 (of the sender) we have:
+
+\begin{alltt}
+  Var
+    stimer1_on      : boolean;
+    stimer1_enabled : boolean;
+\end{alltt}
+
+To begin with, these timer variables are false.  When  a timer is set,
+the `on' variable is set to true. When (later) a timeout is allowed to
+occur, the `enabled' variable is set to true. As an example, when both
+variables of timer 1 have been set to true,  a timeout from timer 1 is
+allowed. We will see this illustrated in a moment.
+
+Let us illustrate a few transition rules of the  protocol. We focus on
+the sender.  The following rule models how the environment ``generates''
+a new request to the sender:
+
+\begin{alltt}
+  Ruleset d1 : Data; d2 : Data; d3 : Data Do
+    Rule "write_req" 
+      !req_full
+        ==>
+      req_full := true;
+      req[1] := d1;
+      req[2] := d2;
+      req[3] := d3;
+    End;
+  End;
+\end{alltt}
+
+The  rule  is ``quantified''  over the data of the request: any booleans
+may  be chosen  for  {\tt d1},  {\tt d2} and {\tt d3}. The  rule is
+called  {\tt  write\_req}. It's pre-condition is  that the  {\tt req}
+variable is ``empty'' ({\tt req\_full} is false -- `{\tt !}' means negation).
+
+The next rule models how the sender reads this new request:
+
+\begin{alltt}
+  Rule "read_req" 
+    spc = WR &
+    req_full
+      ==>
+    req_full := false;
+    For i := 1 To last Do file[i] := req[i] End;
+    head := 1;
+    spc := SF;
+    verify_REQ(req);
+  End;
+\end{alltt}
+
+The  pre-condition requires that  the sender's program counter is {\tt
+WR}:  ``wait  for a request''.  Also,  the  {\tt req\_full} flag must be
+true.  The {\tt head} is set to point to the first  message in the new
+file, and the program counter is  set to {\tt  SF}: ``send the file''.
+The call of the {\tt verify\_REQ} procedure is  a call to the abstract
+specification  of the protocol.    The   call will result in   certain
+assertions to be verified  in the abstract protocol,  and if they fail
+to hold, program  execution   will terminate.  The abstract   protocol
+hence ``polices'' the behavior of  the protocol; this will be explained
+in the  next section. Note that  the  ``policing'' only takes  place for
+so called ``external'' transition  rules:  the ones that  models external
+communications to  the surrounding  environment. So communications  on
+channels {\tt K} and {\tt L} are for example not external.
+
+The next rule models how the sender sends a message to the receiver:
+it writes the current data in the file to the {\tt K} variable:
+
+\begin{alltt}
+  Rule "write_K"
+    spc = SF &
+    !K_full
+      ==>
+    K_full := true;
+    K.first := sfirst;
+    K.last := (head = last);
+    K.toggle:= stoggle;
+    K.data := file[head];
+    spc:= WA;
+    rn := rn+1;
+    stimer1_on := true;
+  End;
+\end{alltt}
+
+The pre-condition  states that  a message can  only  be sent when  the
+sender's program counter is {\tt SF} and  the variable {\tt K\_full}
+is false: note that this indicates that the {\tt K}
+variable is ``empty''. When the rule  is executed, the {\tt K} variable
+is updated in 5 assignment statements.   For example, {\tt K.data}  is
+assigned the value of the current ({\tt head}) element in {\tt file}.
+The program counter is  updated  so that the  sender  now waits for an
+acknowledgment to arrive. The number {\tt rn} of retransmissions is
+incremented, and finally, timer 1 is set: if an acknowledgment does not 
+arrive within a certain time period, a timeout will occur. 
+
+Since  timers cannot be  modeled  directly  we  have  to  model  them
+indirectly: we let the cause of the timeout set the `enabled' variable
+to true. The cause of timer 1 timeouts is either the loss of a message
+or an acknowledgment. So we model the loss of a message as an action
+of the environment as follows:
+
+\begin{alltt}
+  Rule "lose_msg"
+    K_full 
+    ==> 
+    K_full := false;
+    stimer1_enabled := true;
+  End;
+\end{alltt}
+
+Note how the enabled-variable is set to true. Now, a timeout can occur
+as modeled by the following rule:
+
+\begin{alltt}
+  Rule "stimer1"
+    stimer1_on & stimer1_enabled 
+      ==>
+    If rn = max
+       Then spc := SC;
+       Else spc := SF;
+    End;
+    stimer1_on := false;
+    stimer1_enabled := false;
+  End;
+\end{alltt}
+
+The  pre-condition of  the rules requires  that {\tt stimer1\_on}  as
+well as  {\tt stimer1\_enabled} must be true. If the number {\tt rn}
+of  retransmissions  has reached the upper limit {\tt max},  then the
+sender's program  counter is set to {\tt SC}: ``send  a confirmation''.
+Otherwise, it is set to {\tt SF}: try to send the message again.
+
+There  are other sender  rules,  and there are   similar rules for the
+receiver, 17 in total.
+
+
+\section{The Correctness Criteria}
+
+The  abstract  protocol  specification  is  written  as  part  of  the
+\Murphi{}-program and uses  its  own local  types  and variables. 
+It can be conceived as an {\em automaton} in itself, that is triggered
+by the  external events of  the protocol.  The following variables are
+used:
+
+\begin{alltt}
+  Var
+    abusy  : boolean;
+    afile  : File;
+    ahead  : 1..last+1;
+    afirst : boolean;
+    aerror : boolean;
+\end{alltt}
+
+The  {\tt abusy}  variable  is  true  whenever   a  file  is   being
+transmitted.   The   variables  {\tt afile}  and  {\tt ahead}   will
+together at  any time model  which message the  abstract  protocol  is
+prepared  to   transmit   (by  an  {\tt IND}  action).  The  variable
+{\tt aerror} becomes  true if  a confirmation  occurs before the last
+message has been transmitted.
+
+Now we are ready to define the abstract protocol.  We do this in terms
+of a collection   of  procedures, one for  each   of  the four   external
+activities of the protocol: {\tt  REQ}, {\tt IND}, {\tt IND\_ERR}, and
+{\tt  CONF}\@.   
+
+\begin{alltt}
+  Procedure verify_REQ(f:File);
+  Begin
+    assert !abusy "REQ";
+    abusy := true;
+    afile := f;
+    ahead := 1; 
+  End;
+\end{alltt}
+
+\begin{alltt}
+  Procedure verify_IND(d:Data;i:IndT);
+  Begin
+    assert  abusy & !aerror & ahead != nil &
+            d = afile[ahead] &
+            i = (ahead=last ? LAST : (afirst ? FIRST : INCOMPLETE)) "IND";
+    afirst := (ahead=last);
+    ahead := ahead + 1;
+  End;
+\end{alltt}
+
+\begin{alltt}
+  Procedure verify_IND_ERR();
+  Begin
+    assert aerror "IND_ERR";
+    afirst := true;
+    aerror := false;
+  End;
+\end{alltt}
+
+\begin{alltt}
+  Procedure verify_CONF(c:Conf);
+  Begin
+    assert abusy & !aerror &
+           (c=OK -> ahead=nil) &
+           (c=DONT_KNOW -> (ahead=nil|ahead=last)) &
+           (c=NOT_OK -> ahead != nil) "CONF";
+    abusy := false;
+    aerror := !afirst;
+    ahead := nil; 
+  End;
+\end{alltt}
+
+So this abstract protocol  is supposed to have the ``same behavior'' as
+the  protocol, except  that there  are  no internal  communications on
+{\tt K}  and  {\tt L}. Note how the {\tt assert} statements function
+as ``pre-conditions'': when the  protocol calls the abstract procedures (as
+a procedure  is called), the  {\tt assert} condition  in the  relevant
+case   is   evaluated,   and   if   it   evaluates   to   false,   the
+\Murphi{}-verification terminates, printing the string in quotes  
+together  with  the   trace of states   that  lead  to  the  falsified
+assertion.   In   this way  we have smoothly   formulated a refinement
+relation in the model checker, one of the results of this work.
+
+The abstract  protocol  works as   follows: After  a request has  been
+received ({\tt  REQ}), the messages  are sent ({\tt IND(m,i)})  one by
+one, the first with {\tt i=FIRST},  the second with {\tt i=INCOMPLETE}
+and  finally   the last   with {\tt  i=LAST}    (note the special {\tt
+?}-syntax  for    \Murphi{}   if-then-else  expressions).     Then   a
+confirmation  {\tt CONF(OK)} is  produced.  If an  error occurs on the
+way, a {\tt CONF(NOT\_OK)} or  {\tt CONF(DONT\_KNOW)} may be confirmed
+instead. In case  the confirmed value is  {\tt NOT\_OK}, the  abstract
+protocol  requires there  to be more   values to be transmitted:  some
+really have been  lost. If the  confirmed  value is {\tt  DONT\_KNOW},
+then  either ($\vert$ means  or): all values  have in fact transmitted
+({\tt ahead=nil}{\tt =last+1}), or: the last one has
+not yet been transmitted ({\tt ahead=last}).  If a confirmation occurs
+before the last message has been transmitted, the  {\tt aerror} is set
+to true, and hence an {\tt IND\_ERR} action may occur.
+
+As may already be clear from the above, running the \Murphi{}-verifier
+means the following:   the verifier examines every possible  execution
+trace of the concrete protocol.   Each such trace will ``include'' calls
+of  the abstract   procedures whenever  an  external action  is
+performed.  If one of these calls evaluate an {\tt assert} condition to
+false, the verifier terminates   while indicating the error.  When  we
+verified   the above  protocol,  no  such  error  states  occurred: the
+protocol was   ``correct''. 450.801  states were  explored. Transition
+rules were fired 1.555.912 times in 784,7 seconds.
+

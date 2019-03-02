@@ -1,0 +1,537 @@
+
+\section{The Specification}
+\label{goto-specification}
+
+We now present  the initial  specification of  the  garbage
+collector.  It is  presented as a  transition  system using an informal
+notation for  describing a such.   In Section~\ref{pvs-specifications}
+it is described how we encode transition systems in PVS.
+
+We shall assume a data  structure representing the memory.  The number
+of  nodes in the  memory is defined by the  constant {\tt NODES}\@.  The
+type {\tt Node} defines the numbers from $0$ to ${\tt NODES} - 1$.  The
+constant {\tt  SONS} defines the number  of  cells per node.  The type
+{\tt Index} defines the numbers  from $0$ to ${\tt  SONS} - 1$. Hence,
+the  memory can  be  thought of a   two-dimensional array, and can  be
+declared as follows:\footnote{The actual PVS specification shown on
+page~\pageref{memory-fig} is actually more abstract and does not
+specify the memory as being implemented as an array.  We use
+an array implementation here for clarity of presentation. }
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  var
+    M : array[Node,Index] of Node;
+\end{smallsession}
+%\caption{Specification State}
+\label{spec-state}
+%\end{figure}
+
+The memory will be the observed part  of the state ($\Sigma_{o}$ -- see
+Definition~\ref{def-refinement-mapping}) throughout all  refinements. 
+For example, the node  colouring  structure and other  auxiliary variables
+that we later add will be internal.  Recall that an initial segment of
+the  nodes are roots, the  number  being defined by  the constant {\tt
+  ROOTS}\@.   A number of functions  (e.g., for reading the  state) and
+procedures (e.g., for modifying  the  state) are assumed:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  function  accessible(n:Node):bool;
+  function  son(n:Node,i:Index):Node;
+  procedure set_son(n:Node,i:Index,k:Node);
+  procedure append_to_free(n:Node);
+\end{smallsession}
+%\caption{Auxiliary Functions used in the Specification}
+\label{spec-functions}
+%\end{figure}
+
+The  function {\tt accessible} returns  true if  its argument node is
+accessible from one of the roots by  following pointers.  The function
+{\tt son} returns  the contents of  cell  {\tt (n,i)}\@.  The  procedure
+{\tt set\_son} assigns {\tt k} to the cell identified  by {\tt (n,i)}\@. 
+Hence after the  procedure has been called,   this cell now points  to
+{\tt k}\@.  The function {\tt   append\_to\_free} appends its  argument
+node to the list  of free nodes,  assuming that it is  a garbage node. 
+The specification consists of  the parallel composition of the mutator
+and   the     collector.    The  mutator looks as follows:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  MODIFY : 
+    [1] choose n,k:Node; i:Index where accessible(k) -> 
+          set_son(n,i,k); 
+          goto MODIFY
+        end
+\end{smallsession}
+%\caption{Specification of Mutator}
+\label{spec-mutator}
+%\end{figure}
+
+A program at  any time during   its execution is  in  one of a  finite
+collection of locations  that are identified  by program  labels.  The
+above mutator has one such location named  {\tt MODIFY}\@.  Associated
+with  each location is  a set of  numbered (e.g. {\tt [1]}, {\tt [2]})
+rules,    typically of the form   {\tt  p -> s},   where  {\tt p} is a
+pre-condition on the  state and  {\tt s}  is an assignment  statement. 
+When the program  execution is at this  location, all rules where  the
+condition  {\tt p}  is true  in the  current state are  enabled, and a
+non-deterministic choice is  made between them,  resulting in the next
+state being obtained  by applying the {\tt s}  statement of the chosen
+rule to the current state.  The ``{\tt choose x:T where  p -> s end}''
+construct represents a set of such rules,  one for each choice of {\tt
+  x} within its type {\tt T}\@.  Hence, the mutator repeatedly chooses
+two   arbitrary  nodes {\tt  n,k:Node}   and  an arbitrary index  {\tt
+  i:Index} such that {\tt  k} is accessible.  The  cell {\tt (n,i)} is
+then set to point to {\tt k}\@.  The collector looks as follows:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  COLLECT :
+    [1] choose n:Node where not accessible(n) -> 
+          append_to_free(n); 
+          goto COLLECT
+        end
+\end{smallsession}
+%\caption{Specification of Collector}
+\label{spec-collector}
+%\end{figure}
+
+It repeatedly chooses an arbitrary inaccessible node which  is 
+then appended  to  the free list   of  nodes. Since   the  node is not
+accessible it     is a garbage   node, hence   only garbage  nodes are
+collected  (appended),  and this is the   proper  specification of the
+garbage collector.  This yields an abstract specification of the behavior
+of the collector that is not yet a reasonable implementation.
+We need to somehow implement the selection of an inaccessible node.  
+
+
+\section{The Refinement Steps}
+\label{refinement-steps}
+
+In this section we outline how the refinement  is carried out in three
+steps,  resulting  in   the  garbage collection   algorithm  described
+informally in Section~\ref{informal-specification}\@.  Each refinement is
+given  an individual  section, which   again is  divided  into a  {\em
+  program}  section  presenting  the new program,   and a  {\em proof}
+section  outlining the  refinement  proof.  According  to
+Theorem~\ref{theorem-refinement}  a refinement    can be   proved by
+identifying a refinement mapping from the concrete  state space to the
+abstract state  space,  see Definition~\ref{def-refinement-mapping}\@.  
+Hence, each {\em proof} section will consist of a definition of such a
+mapping together with a proof that it is a refinement mapping, focusing
+on   the  simulation relation required in  item $(3)$ of
+Definition~\ref{def-refinement-mapping}\@.  The   PVS encoding  of  the
+programs is described in  Section~\ref{pvs-specifications}, while the PVS 
+encoding of the refinement proofs is described in Section~\ref{pvs-proof}\@.
+
+
+\subsection{First Refinement : Introducing Colours}
+\label{first-refinement}
+
+\subsubsection{The Program}
+
+In  the first step, the  collector is refined  to base  its search for
+garbage nodes  on a colouring  technique.  The  type {\tt  Colour}  is
+defined as {\tt bool},  the set of  booleans, assumed to represent the
+colours {\em black}   (true) and {\em  white} (false)\@.    The global
+state must be  extended with  a colouring  of each node  in the memory
+(not each cell), and a couple of extra auxiliary variables {\tt Q} and
+{\tt L} used for other purposes.  The extended state is shown below.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  var
+    M : array[Node,Index] of Node;
+    C : array[Node] of Colour;
+    Q : Node;
+    L : nat;
+\end{smallsession}
+%\caption{First Refinement State}
+\label{refinement1-state}
+%\end{figure}
+
+\noindent Three extra operations on this new data structure are needed:
+
+%\begin{figure}[htb]
+\label{refinement1-functions}
+\begin{smallsession}
+  procedure set_colour(n:Node,c:Colour);
+  function  colour(n:Node):Colour;
+  function  blackened():bool;
+\end{smallsession}
+%\caption{Additional Auxiliary Functions used in First Refinement}
+%\end{figure}
+
+The procedure {\tt set\_colour} colours a node either white or black by
+updating the concrete variable {\tt C}\@.  
+The function {\tt colour} returns the colour of a node. Finally, the function
+{\tt blackened} returns true if {\em all accessible nodes are black}\@.
+The  mutator is  now  refined  into  the program  which was informally
+described   in    Section~\ref{informal-specification}:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  MUTATE :
+    [1] choose n,k:Nodes; i:Index where accessible(k) -> 
+          set_son(n,i,k); 
+          Q := k; 
+          goto COLOUR;
+        end
+  COLOUR :  
+    [1] true -> set_colour(Q,true); goto MUTATE;
+\end{smallsession}
+%\caption{Refinement of Mutator}
+\label{refinement1-mutator}
+%\end{figure}
+
+There are two  locations, {\tt MUTATE} and {\tt  COLOUR}\@.  In the {\tt
+  MUTATE} location,  in addition  to  the
+mutation, the target node {\tt k} is assigned  to the global auxiliary
+variable {\tt  Q}\@.   Then in the  {\tt COLOUR}   location,  {\tt Q} is
+coloured black.    {\em Note that    the mutator will not  be  further
+  refined, it will now stay unchanged during the remaining refinements
+  of the collector}\@. The collector is defined as follows.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  COLOUR :
+    [1] choose n:Nodes -> 
+          set_colour(n,true); 
+          goto COLOUR;
+        end;
+    [2] blackened() -> L := 0; goto TEST_L;
+  TEST_L :
+    [1] L = NODES -> goto COLOUR;
+    [2] L < NODES -> goto APPEND;
+  APPEND :
+    [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
+\end{smallsession}
+%\caption{First Refinement of Collector}
+\label{refinement1-collector}
+%\end{figure}
+
+It consists of two phases.  While  in the {\tt COLOUR} location, nodes
+are coloured arbitrarily until  all  accessible nodes are black  ({\tt
+  blackened()})\@.  The style in which colouring is expressed may seem
+surprising, but it is a way of defining a  post condition: {\em colour
+  at  least  all   accessible nodes}\@.\footnote{By  formulating  this
+  colouring as    an iteration, we   can  avoid introducing  a history
+  variable at a lower  refinement level.   Note  that any node can  be
+  coloured, not only accessible  nodes. This allows a later refinement
+  to colour nodes   that originally were  accessible,  but  later have
+  become  garbage.}  In the  second phase at locations {\tt TEST\_L} and
+{\tt APPEND},  all white nodes are  regarded as garbage nodes, and are
+hence collected (appended to the free list)\@.  The auxiliary variable
+{\tt L}  is used to  control the loop: it  runs through all the nodes. 
+After  appending all  garbage  nodes to the  free  list, the colouring
+phase is restarted.
+
+
+\subsubsection{The Refinement Proof}
+\label{first-informal-refinement}
+
+The  refinement mapping, call it $abs$,  from the concrete state space
+to the abstract state space maps {\tt M} to {\tt M}\@.  Note that such
+a mapping only needs to be defined  for each component of the abstract
+state,  showing how it  is generated  from  components in the concrete
+state.  Hence, the concrete variables {\tt C}, {\tt Q} and {\tt L} are
+not used  for this  purpose.   This is  generally  the case   for  the
+refinement mappings to follow: they are  the identity on the variables
+occurring  in the abstract state.  Also  program  locations have to be
+mapped.  In fact, each program (mutator, collector) can be regarded as
+having a program   counter  variable, and we    have to show  how  the
+abstract program   counter is obtained  (mapped)  from  the  concrete. 
+Whenever the  concrete program is in a  particular  location $l$, then
+the abstract will be in  the location $abs(l)$.   In the current case,
+the concrete mutator locations {\tt  MUTATE} and {\tt COLOUR} are both
+mapped to  {\tt MODIFY}, while  the  concrete collector locations {\tt
+  COLOUR}, {\tt  TEST\_L}  and {\tt APPEND}   all are mapped   to {\tt
+  COLLECT}\@. This completes the definition of the refinement mapping.
+
+In  order      to     prove   Property    $(3)$      in     Definition
+\ref{def-refinement-mapping}, we   associate  each transition  in  the
+concrete program with a transition  in the abstract program, and prove
+that: ``if the  concrete transition brings   a state $s_1$ to  a state
+$s_2$, then the abstract transition brings the state $abs(s_1)$ to the
+state $abs(s_2)$''.   We say that  the concrete transition, say $t_c$,
+{\em simulates} the abstract transition, say $t_a$,  and write this as
+$t_c \refines t_a$.  Putting  all these sub-proofs together will yield
+a proof of $(3)$.   Some of the  concrete transitions just simulate  a
+stuttering step  (no state change) in the  abstract system.  This will
+typically be   some of the  new  transitions associated with  {\em new
+  location  names}  added  to  the  concrete program.  
+Other   concrete transitions have   exact counterparts in the abstract
+program.   These are typically transitions  associated  with {\em same
+  location names}  as  in the abstract program.  In the
+following, we will only mention cases that deviate from the above two;
+i.e.,  where  we   add  {\em  new   location   names},  and  where  the
+corresponding {\em new} transitions do {\em not} simulate a stuttering
+step in the abstract program.
+
+Hence in our case, {\tt MUTATE.1} $\refines$  {\tt MODIFY.1}, and {\tt
+  APPEND.1}  $\refines$ {\tt  COLLECT.1}\label{append-refines-collect}
+({\tt APPEND.2} simulates   stuttering)\@.    In the proof  of    {\tt
+  APPEND.1} $\refines$ {\tt COLLECT.1},  an invariant is needed  about
+the concrete program:
+
+\begin{center}
+\label{refinement1-inv1}
+  {\tt collector@APPEND} $\andthen$ {\tt accessible(L)} 
+  $\implies$ {\tt colour(L)}
+\end{center}
+
+It says that whenever  the concrete collector is  at the {\tt  APPEND}
+location, and node {\tt L} is accessible, then  {\tt L} is also black. 
+From this we can conclude that the {\tt append\_to\_free} operation is
+only applied to garbage nodes, since it is only applied to white nodes.
+Hence, we need  to prove an  invariant about  the concrete program  in
+order  to  prove  the refinement.  In   general,  the  proof of  these
+invariants is what really makes the refinement  proof non-trivial.  To
+prove the above invariant, we   do in fact  need  to prove a  stronger
+invariant, namely that in locations  {\tt TEST\_L} and {\tt  APPEND}:
+$\forall n \ge$ {\tt L} $\cdot$  
+{\tt accessible(}$n${\tt )} $\implies$ {\tt colour(}$n${\tt )}. 
+This invariant strengthening is typical in our proofs.
+
+
+\subsection{Second Refinement : Colouring by Propagation}
+\label{second-refinement}
+
+\subsubsection{The Program}
+
+In this  step,  accessible nodes  are  coloured  through a propagation
+strategy, where first all roots are coloured, and next all white nodes
+which have a black father are coloured.  The state is extended with an
+extra auxiliary variable {\tt K}  used for controlling the  iteration
+through  the  roots.   The   extended    state is shown  below.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  var
+    M : array[Node,Index] of Node;
+    C : array[Node] of Colour;
+    Q : Node;
+    K, L : nat;
+\end{smallsession}
+%\caption{Second Refinement State}
+\label{refinement2-state}
+%\end{figure}
+
+\noindent Two  additional    functions are needed:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  function bw(n:Node,i:Index):bool;
+  function exists_bw():bool;
+\end{smallsession}
+%\caption{Additional Auxiliary Functions used in Second Refinement}
+\label{refinement2-functions}
+%\end{figure}
+
+The function {\tt bw} returns true if {\tt n} is black and {\tt son(n,i)}
+is white. The function {\tt exists\_bw} returns true if there exists a
+black node,  say {\tt n},  that  via one of  its cells,  say {\tt i},
+points to a white node. That is: {\tt bw(n,i)}\@. The collector becomes as
+follows:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  COLOUR_ROOTS :
+    [1] K = ROOTS -> goto PROPAGATE;
+    [2] K < ROOTS -> set_colour(K,true); K := K+1; goto COLOUR_ROOTS;
+  PROPAGATE :
+    [1] choose n:Node; i:Index where bw(n,i) -> 
+          set_colour(son(n,i),true); 
+          goto PROPAGATE;
+        end;
+    [2] not exists_bw() -> L := 0; goto TEST_L;
+  TEST_L :
+    [1] L = NODES -> K := 0; goto COLOUR_ROOTS;
+    [2] L < NODES -> goto APPEND;
+  APPEND :
+    [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
+\end{smallsession}
+%\caption{Second Refinement of Collector}
+\label{refinement2-collector}
+%\end{figure}
+
+The {\tt COLOUR} location from the previous level has been replaced by
+the two locations {\tt  COLOUR\_ROOTS} and {\tt PROPAGATE} (while  the
+append phase is mostly unchanged)\@. In the {\tt COLOUR\_ROOTS} location
+all roots  are  coloured black,  the  loop  being controlled  by   the
+variable {\tt K}\@. In the {\tt PROPAGATE} location, either there exists
+no black node with a white son (i.e. {\tt not exists\_bw()}), in which
+case we start collecting (going to  location {\tt TEST\_L}), or such a
+node exists, in which case its son is coloured black, and we continue
+colouring.
+
+
+\subsubsection{The Refinement Proof}
+
+The  refinement mapping,  besides  being  the identity on  identically
+named entities (variables  as well as  locations), maps the collector
+locations {\tt COLOUR\_ROOTS} and {\tt PROPAGATE} to {\tt COLOUR}\@.  Hence
+concrete   root  colouring as well  as   concrete propagation are just
+particular kinds of abstract colourings.
+
+Concerning the transitions,  
+{\tt  COLOUR\_ROOTS.2} $\refines$ {\tt  COLOUR.1}, 
+{\tt PROPAGATE.1} $\refines$ {\tt  COLOUR.1},  
+and
+{\tt PROPAGATE.2} $\refines$ {\tt COLOUR.2}. 
+In   the proof  of {\tt PROPAGATE.2} $\refines$ {\tt COLOUR.2}, 
+an invariant is needed about the concrete program:
+
+\begin{center}
+  {\tt collector@PROPAGATE} $\implies$ $\forall r:$ {\tt Root} $\cdot$ 
+  {\tt colour(}$r${\tt )}
+\end{center}
+
+It states that in location {\tt PROPAGATE} all roots must be coloured.
+This fact combined with the propagation termination condition {\tt not
+  exists\_bw()}: ``there does not exist a pointer from a black node to
+a  white node'', will  imply  the propagation termination condition in
+{\tt  COLOUR.2} of  the  abstract specification:  {\tt blackened()},
+which says that ``all accessible nodes are coloured''.
+
+
+\subsection{Third Refinement : Propagation by Scans}
+\label{third-refinement}
+
+\subsubsection{The Program}
+
+In the last refinement,  the propagation, represented by  the location
+{\tt PROPAGATE}  above, is refined into an  algorithm, where all nodes
+are repeatedly  scanned in sequential  order, and if black, their sons
+coloured;  until a  whole scan  does not  result in  a colouring.  The
+state   is  extended with auxiliary  variables   {\tt  BC} ({\em black
+  count}) and {\tt OBC}   ({\em old black  count}), used  for counting
+black  nodes; and the  variables {\tt  H}, {\tt I},   and {\tt J}  for
+controlling loops:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  var
+    M   : array[Node,Index] of Node;
+    C   : array[Node] of Colour;
+    Q   : Node;
+    H, I, J, K, BC, OBC : nat;
+\end{smallsession}
+%\caption{Third Refinement State}
+\label{refinement3-state}
+%\end{figure}
+
+\noindent The collector is described  below, where transitions have been 
+divided into 4 steps corresponding  to the informal description of the
+algorithm    on page    \pageref{the-collector-informal}\@.   Two  loops
+interact (steps 2   and 3)\@.  In the   first loop, {\tt  TEST\_I}, {\tt
+  TEST\_COLOUR} and   {\tt COLOUR\_SONS}, all   nodes are scanned, and
+every black node has all its sons coloured. The variables {\tt I} and
+{\tt J} are  used to ``walk'' through the  cells.  In the second loop,
+{\tt TEST\_H}, {\tt COUNT}  and {\tt COMPARE},  it is counted how many
+nodes are black.  This amount is stored in the  variable {\tt BC}, and
+if this amount exceeds  the old  black count,  stored in  the variable
+{\tt OBC}, then yet another scan is started, and {\tt OBC} is updated.
+The variable {\tt H} is used to control this loop.
+
+\newpage
+
+%\begin{figure}[htb]
+\begin{smallsession}
+- Step 1 : Colour roots
+  COLOUR_ROOTS : 
+    [1] K = ROOTS -> I := 0; goto TEST_I;
+    [2] K < ROOTS -> set_colour(K,true); K := K + 1; goto COLOUR_ROOTS;
+
+- Step 2 : Propagate once
+  TEST_I :
+    [1] I = NODES -> BC := 0; H := 0; goto TEST_H;
+    [2] I < NODES -> goto TEST_COLOUR;
+  TEST_COLOUR :
+    [1] not colour(I) -> I := I + 1; goto TEST_I;
+    [2] colour(I)  -> J := 0; goto COLOUR_SONS;
+  COLOUR_SONS :
+    [1] J = SONS -> I := I + 1; goto TEST_I;
+    [2] J < SONS -> set_colour(son(I,J),true); J := J+1; 
+        goto COLOUR_SONS;
+
+- Step 3 : Count black nodes
+  TEST_H :
+    [1] H = NODES -> goto COMPARE;
+    [2] H < NODES -> goto COUNT;
+  COUNT :
+    [1] not colour(H) -> H := H +1; goto TEST_H;
+    [2] colour(H) -> BC := BC + 1; H := H +1; goto TEST_H;
+  COMPARE :
+    [1] BC = OBC -> L := 0; goto TEST_L;
+    [2] BC /= OBC -> OBC := BD; I := 0; goto TEST_I;
+
+- Step 4 : Append garbage nodes
+  TEST_L :
+    [1] L = NODES -> BC := 0; OBC := 0; K := 0; goto TEST_I;
+    [2] L < NODES -> goto APPEND;
+  APPEND :
+    [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
+    [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
+\end{smallsession}
+%\caption{Third Refinement of Collector}
+\label{refinement3-collector}
+%\end{figure}
+
+
+\subsubsection{The Refinement Proof}
+
+The refinement mapping  is the identity, except  for six of the locations
+of  the collector.  That is,  the collector locations {\tt TEST\_I}, {\tt
+  TEST\_COLOUR}, {\tt COLOUR\_SONS}, {\tt  TEST\_H}, {\tt COUNT},  and
+{\tt COMPARE} are  all mapped to  {\tt  PROPAGATE}\@. 
+Concerning   the  transitions,  
+{\tt  COLOUR\_SONS.2} $\refines$ {\tt PROPAGATE.1} 
+whereas  
+{\tt COMPARE.1} $\refines$ {\tt PROPAGATE.2}.    
+In  the   proof   of  
+{\tt  COLOUR\_SONS.2} $\refines$ {\tt PROPAGATE.1}, 
+the following invariant is needed:
+
+\begin{center}
+  {\tt collector@COLOUR\_SONS} $\implies$ {\tt colour(I)}
+\end{center}
+
+This property    implies   that the  abstract   {\tt    PROPAGATE.1}
+transition pre-condition {\tt bw(I,J)} will be true (in case the son
+is white)  or otherwise  (if  the  son is  also  black),  the concrete
+transition corresponds to  a  stuttering  step (colouring an   already
+black son is the identity function)\@.  Correspondingly, in the proof of
+{\tt  COMPARE.1}  $\refines$  {\tt   PROPAGATE.2},  the  following
+invariant is needed:
+
+\begin{center}
+  {\tt collector@COMPARE} $\andthen$ {\tt BC = OBC} $\implies$ 
+  $\neg$ {\tt exists\_bw()}
+\end{center}
+
+It states that when the collector is in  location {\tt COMPARE}, after
+a counting scan where the number of black  nodes have been counted and
+stored in {\tt  BC}, if the number counted  equals the  previous (old)
+count {\tt OBC} then there does not exist a pointer  from a black node
+to a   white  node.  Note that   {\tt  BC =   OBC} is  the propagation
+termination condition,  and this  then corresponds to  the termination
+condition {\tt  not   exists\_bw()} of the  abstract  transition  {\tt
+  PROPAGATE.2}.  The  proof  of    these  two invariants   is  quite
+elaborate,   and does in  fact  compare  in  size  and ``look'' to the
+complete  proofs in \cite{Hav:GC}  as well as in \cite{Rus:GC}\@. 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+
+
+
+
+
+

@@ -1,0 +1,430 @@
+
+Memory[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  Memory : TYPE+
+
+  Node   : TYPE = {n : nat | n < NODES}
+  Index  : TYPE = {i : nat | i < SONS}
+  Root   : TYPE = {r : nat | r < ROOTS}
+
+  m : VAR Memory
+  n,n1,n2,k : VAR Node
+  i,i1,i2 : VAR Index
+
+  null_array : Memory
+  son        : [Node,Index -> [Memory -> Node]]
+  set_son    : [Node,Index,Node -> [Memory -> Memory]]
+
+  mem_ax1 : AXIOM son(n,i)(null_array) = 0
+
+  mem_ax2 : AXIOM son(n1,i1)(set_son(n2,i2,k)(m))
+                    =
+                  IF n1=n2 AND i1=i2 THEN k ELSE son(n1,i1)(m) ENDIF
+
+  points_to(n1,n2)(m):bool =
+    EXISTS (i:Index): son(n1,i)(m)=n2
+
+  accessible(n)(m): INDUCTIVE bool = 
+    n < ROOTS OR
+    EXISTS k: accessible(k)(m) AND points_to(k,n)(m)
+
+  append_to_free : [Node -> [Memory -> Memory]]
+
+  append_ax: AXIOM
+        (NOT accessible(k)(m))
+            IMPLIES
+          (accessible(n)(append_to_free(k)(m)) IFF (n = k OR accessible(n)(m)))  
+
+END Memory
+
+
+Accessible_Memory_Properties[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Memory[NODES,SONS,ROOTS]
+
+  m : VAR Memory
+  n,n1,n2,k,k1 : VAR Node
+  i : VAR Index
+  l,l1,l2 : VAR list[Node]
+
+  path(m)(n, n1)(l): RECURSIVE bool =
+    (CASES l OF
+       null: n = n1,
+       cons(k,l): (points_to(k, n1)(m) AND
+                   path(m)(n, k)(l))
+     ENDCASES)
+     MEASURE length(l)
+
+  member_cdr(n, l): RECURSIVE list[Node] =
+     (CASES l OF
+        null: null,
+        cons(k, l1): (IF k = n THEN l1
+                        ELSE member_cdr(n, l1) ENDIF)
+      ENDCASES)
+      MEASURE length(l)
+
+  set_son_points_to_1: LEMMA
+      points_to(n, k)(set_son(n, i, k)(m))
+
+  set_son_points_to_2: LEMMA
+      n /= n1 IMPLIES
+        points_to(n1, k1)(set_son(n, i, k)(m)) =
+        points_to(n1, k1)(m)
+
+  set_son_points_to_3: LEMMA
+      k/=k1 AND 
+      points_to(n1, k1)(set_son(n, i, k)(m)) 
+      IMPLIES  points_to(n1, k1)(m)
+         
+  path_append: LEMMA
+     path(m)(n, n1)(l1) AND path(m)(k, k1)(l2) AND points_to(k1, n)(m)
+       IMPLIES path(m)(k, n1)(append(l1, cons(k1, l2)))
+
+  accessible_path: LEMMA
+    accessible(n)(m)
+      = (EXISTS n1, l: path(m)(n1, n)(l) AND n1 < ROOTS)
+
+  path_member_cdr: LEMMA
+    path(m)(n, n1)(l) AND member(k, l) IMPLIES
+      path(m)(n, k)(member_cdr(k, l))
+
+  length_member_cdr: LEMMA
+    cons?(l) IMPLIES
+      length(member_cdr(n, l)) < length(l)
+
+  path_without_duplicates: LEMMA
+    path(m)(n, n1)(l) IMPLIES
+      (EXISTS l1: path(m)(n, n1)(l1) AND
+                   NOT member(n1, l1))
+
+  path_set_son: LEMMA
+    path(m)(n, n1)(l) AND NOT member(k, l) IMPLIES 
+      path(set_son(k, i, k1)(m))(n, n1)(l)
+
+  path_set_son_2: LEMMA
+    path(set_son(k, i, k1)(m))(n, n1)(l) AND
+    NOT member(k, l)
+      IMPLIES 
+    path(m)(n, n1)(l)
+
+  path_set_son_3: LEMMA
+    path(set_son(k, i, k1)(m))(n, n1)(l) AND
+    path(m)(n2, k1)(l2)
+      IMPLIES 
+    (EXISTS l1: path(m)(n, n1)(l1) OR
+                path(m)(n2, n1)(l1))
+
+  accessible1 : LEMMA
+    accessible(k)(m) AND accessible(n1)(set_son(n,i,k)(m))
+      IMPLIES
+    accessible(n1)(m)
+
+  accessible2 : LEMMA
+    accessible(k)(m) IMPLIES accessible(k)(set_son(n,i,k)(m))
+
+END Accessible_Memory_Properties
+
+
+Coloured_Memory[
+  NODES : posnat, 
+  SONS  : posnat, 
+  ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Memory[NODES,SONS,ROOTS]
+
+  Colour  : TYPE = bool
+  Colours : TYPE = [Node -> Colour]
+
+  n  : VAR Node
+  i  : VAR Index
+  c  : VAR Colour
+  cs : VAR Colours
+  m  : VAR Memory
+
+  colour(n)(cs):Colour = 
+    cs(n)
+ 
+  set_colour(n,c)(cs):Colours = 
+    cs WITH [n := c]
+
+  blackened(cs,m):bool =
+    FORALL n: accessible(n)(m) IMPLIES colour(n)(cs)
+
+  bw(n,i)(cs,m):bool =
+    colour(n)(cs) AND NOT colour(son(n,i)(m))(cs)
+
+  exists_bw(cs,m):bool =
+    EXISTS n,i: bw(n,i)(cs,m)
+
+END Coloured_Memory
+
+
+Memory_Observers
+  [NODES : posnat, 
+   SONS  : posnat, 
+   ROOTS : posnat] : THEORY
+
+BEGIN
+
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+
+  IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
+
+  cs      : VAR Colours
+  m       : VAR Memory
+  n       : VAR Node
+  i       : VAR Index
+  r       : VAR Root
+  N,N1,N2 : VAR nat
+  I1,I2   : VAR nat
+  cl1,cl2 : VAR [nat,nat]
+
+  blackened(N)(cs,m):bool =
+    FORALL (n | N <= n):
+      accessible(n)(m) IMPLIES colour(n)(cs)
+
+  black_roots(N)(cs):bool =
+    FORALL (r | r < N): colour(r)(cs);
+
+  <(cl1,cl2):bool =
+    LET 
+      n1 = PROJ_1(cl1), i1 = PROJ_2(cl1), 
+      n2 = PROJ_1(cl2), i2 = PROJ_2(cl2)
+    IN
+      n1 < n2 OR (n1 = n2 AND i1 < i2);
+
+  exists_bw(N1,I1,N2,I2)(cs,m):bool =
+    EXISTS n,i:
+      bw(n,i)(cs,m) AND 
+      NOT (n,i) < (N1,I1) AND
+      (n,i) < (N2,I2)
+
+  blacks(N1,N2)(cs) : RECURSIVE nat =
+    IF N1 < N2 AND N1 < NODES THEN 
+      IF colour(N1)(cs) THEN 1 ELSE 0 ENDIF + blacks(N1+1,N2)(cs)
+    ELSE
+      0
+    ENDIF
+    MEASURE abs(N2-N1)
+
+END Memory_Observers
+
+
+Memory_Properties[NODES: posnat, SONS: posnat, ROOTS: posnat]: THEORY
+BEGIN
+  
+  ASSUMING
+    roots_within: ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  
+  IMPORTING Memory_Observers[NODES, SONS, ROOTS]
+  
+  IMPORTING Accessible_Memory_Properties[NODES, SONS, ROOTS]
+  
+  abs((i: int)): nat = IF i < 0 THEN -i ELSE i ENDIF
+  
+  cs : VAR Colours
+  c : VAR Colour
+  m : VAR Memory  
+  n, n1, n2, k : VAR Node
+  i, i1, i2, j : VAR Index
+  N, N1, N2 : VAR nat
+  I, I1, I2 : VAR nat
+  x : VAR nat
+  l, l1, l2 : VAR list[Node]
+  
+  smaller1 : LEMMA 
+    NOT (n, i) < (0, 0)
+  
+  smaller2 : LEMMA 
+    (NOT (n, i) < (k, 0) AND (n, i) < (k + 1, 0)) IMPLIES n = k
+  
+  smaller3 : LEMMA 
+    (n, i) < (k, SONS) IFF (n, i) < (k + 1, 0)
+  
+  smaller4 : LEMMA 
+    (NOT (n, i) < (k, j) AND (n, i) < (k, j + 1)) IMPLIES (n, i) = (k, j)
+  
+  colour1 : LEMMA 
+    colour(n)(set_colour(n1, c)(cs)) = IF n = n1 THEN c ELSE colour(n)(cs) ENDIF
+  
+  colour2 : LEMMA 
+    colour(n)(cs) IMPLIES set_colour(n, TRUE)(cs) = cs
+  
+  blackened1 : LEMMA 
+    blackened(n)(cs, m) AND accessible(n)(m) IMPLIES colour(n)(cs)
+  
+  blackened2 : LEMMA
+    accessible(k)(m) AND blackened(N)(cs, m) IMPLIES blackened(N)(cs, set_son(n, i, k)(m))
+  
+  blackened3 : LEMMA 
+    blackened(N)(cs, m) IMPLIES blackened(N)(set_colour(n, TRUE)(cs), m)
+  
+  blackened4 : LEMMA 
+    blackened(n)(cs, m) IMPLIES blackened(n + 1)(set_colour(n, FALSE)(cs), m)
+  
+  blackened5: LEMMA
+    NOT accessible(n)(m) AND blackened(n)(cs, m) IMPLIES 
+      blackened(n + 1)(cs, append_to_free(n)(m))
+  
+  blackened6 : LEMMA 
+    blackened(cs, m) IMPLIES blackened(0)(cs, m)
+  
+  blackened7 : LEMMA 
+    black_roots(ROOTS)(cs) AND NOT exists_bw(cs, m) IMPLIES blackened(cs, m)
+  
+  blackened8 : LEMMA 
+    blackened(cs, m) AND accessible(n)(m) IMPLIES colour(n)(cs)
+  
+  black_roots1 : LEMMA 
+    black_roots(N)(cs) IMPLIES black_roots(N)(set_colour(n, TRUE)(cs))
+  
+  black_roots2 : LEMMA 
+    black_roots(0)(cs)
+  
+  black_roots3 : LEMMA 
+    black_roots(n)(cs) IMPLIES black_roots(n + 1)(set_colour(n, TRUE)(cs))
+  
+  bw1 : LEMMA 
+    bw(n, i)(cs, m) = (colour(n)(cs) AND NOT colour(son(n, i)(m))(cs))
+  
+  bw2 : LEMMA
+    (NOT bw(n1, i1)(cs, m) AND bw(n1, i1)(cs, set_son(n2, i2, k)(m)))
+      IMPLIES 
+    (n1, i1) = (n2, i2)
+  
+  bw3: LEMMA
+    (NOT bw(n, i)(cs, m) AND bw(n, i)(set_colour(k, TRUE)(cs), m))
+      IMPLIES 
+    (n = k AND NOT colour(n)(cs))
+  
+  bw4 : LEMMA 
+    bw(n, i)(cs, m) IMPLIES colour(n)(cs) AND NOT colour(son(n, i)(m))(cs)
+  
+  exists_bw1 : LEMMA
+    colour(k)(cs) AND NOT exists_bw(cs, m) IMPLIES NOT exists_bw(cs, set_son(n, i, k)(m))
+  
+  exists_bw2 : LEMMA 
+    exists_bw(cs, m) = exists_bw(0, 0, NODES, 0)(cs, m)
+  
+  exists_bw3 : LEMMA 
+    NOT exists_bw(N, I, N, I)(cs, m)
+  
+  exists_bw4 : LEMMA
+    NOT exists_bw(0, 0, N, I)(cs, m) AND exists_bw(0, 0, N, I)(cs, set_son(n, i, k)(m))
+      IMPLIES 
+    NOT colour(k)(cs) AND (n, i) < (N, I)
+  
+  exists_bw5 : LEMMA
+    accessible(n)(m) AND NOT colour(n)(cs) AND black_roots(ROOTS)(cs)
+      IMPLIES 
+    exists_bw(0, 0, NODES, 0)(cs, m)
+  
+  exists_bw6 : LEMMA
+    exists_bw(0, 0, NODES, 0)(cs, m)
+      IMPLIES 
+    exists_bw(0, 0, N, I)(cs, m) OR exists_bw(N, I, NODES, 0)(cs, m)
+  
+  exists_bw7 : LEMMA
+    exists_bw(N, I, NODES, 0)(cs, m) AND (n, i) < (N, I)
+      IMPLIES 
+    exists_bw(N, I, NODES, 0)(cs, set_son(n, i, k)(m))
+  
+  exists_bw8 : LEMMA
+    NOT colour(n)(cs) AND exists_bw(0, 0, n + 1, 0)(cs, m)
+      IMPLIES 
+    exists_bw(0, 0, n, 0)(cs, m)
+  
+  exists_bw9 : LEMMA
+    NOT colour(n)(cs) AND exists_bw(n, 0, NODES, 0)(cs, m)
+      IMPLIES 
+    exists_bw(n + 1, 0, NODES, 0)(cs, m)
+  
+  exists_bw10 : LEMMA 
+    exists_bw(0, 0, N + 1, 0)(cs, m) IMPLIES exists_bw(0, 0, N, SONS)(cs, m)
+  
+  exists_bw11 : LEMMA
+    exists_bw(N, SONS, NODES, 0)(cs, m) IMPLIES exists_bw(N + 1, 0, NODES, 0)(cs, m)
+  
+  exists_bw12 : LEMMA
+    colour(son(n, i)(m))(cs) AND exists_bw(0, 0, n, i + 1)(cs, m)
+      IMPLIES 
+    exists_bw(0, 0, n, i)(cs, m)
+  
+  exists_bw13 : LEMMA
+    colour(son(n, i)(m))(cs) AND exists_bw(n, i, NODES, 0)(cs, m)
+      IMPLIES 
+    exists_bw(n, i + 1, NODES, 0)(cs, m)
+  
+  exists_bw14 : LEMMA
+    exists_bw(N1, I1, N2, I2)(cs, m)
+      IMPLIES 
+    EXISTS (n: Node, i: Index):
+      bw(n, i)(cs, m) AND NOT (n, i) < (N1, I1) AND (n, i) < (N2, I2)
+  
+  blacks1 : LEMMA 
+    blacks(N, N)(cs) = 0
+  
+  blacks2 : LEMMA 
+    blacks(N1, N2)(cs) <= blacks(N1, N2)(set_colour(n, TRUE)(cs))
+  
+  blacks3 : LEMMA 
+    NOT colour(n)(cs) IMPLIES blacks(n, N)(cs) = blacks(n + 1, N)(cs)
+  
+  blacks4 : LEMMA 
+    (n < N AND colour(n)(cs)) IMPLIES blacks(n, N)(cs) = blacks(n + 1, N)(cs) + 1
+  
+  blacks5_1 : LEMMA
+    (n < N1 OR n >= N2) IMPLIES blacks(N1, N2)(set_colour(n, c)(cs)) = blacks(N1, N2)(cs)
+  
+  blacks5_2 : LEMMA
+    (n >= N1 AND n < N2 AND NOT colour(n)(cs))
+      IMPLIES 
+    blacks(N1, N2)(set_colour(n, TRUE)(cs)) = blacks(N1, N2)(cs) + 1
+  
+  blacks5 : LEMMA
+    (blacks(0, NODES)(set_colour(n, TRUE)(cs)) = blacks(0, NODES)(cs)) IMPLIES colour(n)(cs)
+  
+  blacks6 : LEMMA 
+    NOT colour(n2)(cs) IMPLIES blacks(n1, n2 + 1)(cs) = blacks(n1, n2)(cs)
+  
+  blacks7 : LEMMA
+    n1 <= n2 AND colour(n2)(cs) IMPLIES blacks(n1, n2 + 1)(cs) = blacks(n1, n2)(cs) + 1
+  
+END Memory_Properties
+
+
+
+
+
+
+
+
+
+

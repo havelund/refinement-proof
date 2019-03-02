@@ -1,0 +1,10 @@
+(|Composed_Refinement|
+ (IMPORTING1_TCC1 "" (LEMMA "roots_within") (("" (PROPAX) NIL)))
+ (|ref2| "" (LEMMA "R1.ref")
+  (("" (LEMMA "R2.ref")
+    (("" (LEMMA "transitive[S.O_State,S.State,I1.State,I2.State]")
+      (("" (SIM-TRANSITIVE) (("" (USE "roots_within") NIL)))))))))
+ (|ref| "" (LEMMA "ref2")
+  (("" (LEMMA "R3.ref")
+    (("" (LEMMA "transitive[S.O_State,S.State,I2.State,I3.State]")
+      (("" (SIM-TRANSITIVE) NIL))))))))

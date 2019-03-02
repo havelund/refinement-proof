@@ -1,0 +1,283 @@
+
+\section{The Proof in PVS}
+\label{pvs-proof}
+
+\noindent The proof of a single refinement lemma (step) is divided into 
+three activities:   discovery   and proof of  {\em   function lemmas};
+discovery and proof of {\em  invariant lemmas}; and  proof of the {\em
+  refinement lemma}\@.  A {\em function lemma}  states a property of one
+or more   auxiliary functions  involved,  which  in our case   are for
+example  properties  about the  functions   {\tt accessible} and  {\tt
+  blackened}\@.  An invariant  is  a predicate on  states,  and  an {\em
+  invariant lemma} states that an  invariant holds in every  reachable
+state of the concrete implementation ({\tt Garbage\_Collector1} in our
+case)\@.  Recall that we needed such an invariant when applying the {\tt
+  Refinement} theory   (page  \pageref{pvs-mappings})\@.  The   function
+lemmas are used in proofs of invariant lemmas, which again are used in
+proofs of {\em refinement lemmas}\@.
+
+We shall show these lemmas for the first refinement, using a bottom-up
+presentation for  pedagogical reasons, starting  with function lemmas,
+and ending with the refinement lemma.  In, reality, however, the proof
+was ``discovered''   top  down: the refinement   lemma  was stated (by
+applying the {\tt Refinement} theory to  proper arguments), and during
+the proof of   the  corresponding {\tt  ASSUMPTION}s,   the need  for
+invariant lemmas were   discovered, and during  their proofs, function
+lemmas were discovered.
+
+
+\subsection{Function Lemmas}
+
+During  the proof,   we  need a new   set  of auxiliary  functions  to
+``observe'' (or calculate)  certain values based  on the current state
+of the memory.  These {\em observer functions} occur in invariants.  In
+the first refinement step, we shall need  the function {\tt blackened}
+defined  in   the     theory {\tt  Memory\_Observers}
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Memory_Observers[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
+  cs : VAR Colours
+  m  : VAR Memory
+  n  : VAR Node
+  N  : VAR nat
+
+  blackened(N)(cs,m):bool =
+    FORALL (n | N <= n): accessible(n)(m) IMPLIES colour(n)(cs)
+  ...
+END Memory_Observers
+\end{smallsession}
+%\caption{Observer Functions}
+\label{observer-functions}
+%\end{figure}
+
+This function is  similar to the function  which is part  of the first
+refinement, page \pageref{pvs-coloured-memory}, except  that it has an
+additional natural number argument.   The function returns true if all
+nodes above (and including) its argument are black if accessible.  The
+theory contains other  functions, but these  are first needed in later
+refinements and  will  not  be  discussed   here.  The   lemmas  about
+auxiliary functions that we need for the first refinement are given in
+the theory {\tt Memory\_Properties} below.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Memory_Properties[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  IMPORTING Memory_Observers[NODES,SONS,ROOTS]
+
+  cs        : VAR Colours
+  c         : VAR Colour
+  m         : VAR Memory
+  n,n1,n2,k : VAR Node
+  i,i1,i2,j : VAR Index
+  N,N1,N2   : VAR nat
+
+  accessible1 : LEMMA 
+    accessible(k)(m) AND accessible(n1)(set_son(n,i,k)(m))
+      IMPLIES accessible(n1)(m)
+
+  blackened1 : LEMMA 
+    blackened(n)(cs,m) AND accessible(n)(m) IMPLIES colour(n)(cs)
+
+  blackened2 : LEMMA
+    accessible(k)(m) AND blackened(N)(cs,m) 
+      IMPLIES blackened(N)(cs,set_son(n,i,k)(m))
+
+  blackened3 : LEMMA
+    blackened(N)(cs,m) IMPLIES blackened(N)(set_colour(n,TRUE)(cs),m)
+
+  blackened4 : LEMMA
+    blackened(n)(cs,m) IMPLIES blackened(n+1)(set_colour(n,FALSE)(cs),m)
+
+  blackened5 : LEMMA
+    NOT accessible(n)(m) AND blackened(n)(cs,m)
+      IMPLIES blackened(n+1)(cs,append_to_free(n)(m))
+
+  blackened6 : LEMMA
+    blackened(cs,m) IMPLIES blackened(0)(cs,m)
+END Memory_Properties
+\end{smallsession}
+%\caption{Function Lemmas for the First Refinement}
+\label{function-lemmas-refinement1}
+%\end{figure}
+
+The  theory  in its entirety contains   other lemmas, needed for later
+refinements, which we shall however not present  here.  The lemma {\tt
+  accessible1} is a key lemma,  and it says   that the {\tt  set\_son}
+operator cannot turn garbage nodes into accessible nodes.
+
+
+\subsection{Invariant Lemmas}
+
+We can now state  the invariant needed  for the first refinement step. 
+This  is given in  the  theory {\tt Garbage\_Collector1\_Inv}\@.   The
+invariant really needed    for the refinement  proof is    {\tt inv1},
+corresponding to the invariant on page \pageref{refinement1-inv1}; but
+during the proof of that, invariant {\tt inv2} is needed.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Garbage_Collector1_Inv[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  IMPORTING Memory_Properties[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector1[NODES,SONS,ROOTS]
+  IMPORTING Invariant_Predicates[State]
+  s : VAR State
+
+  inv1(s):bool =
+    CHI(s)=APPEND AND L(s) < NODES AND accessible(L(s))(M(s)) 
+      IMPLIES colour(L(s))(C(s))
+
+  inv2(s):bool =
+    CHI(s)=TEST_L OR CHI(s)=APPEND IMPLIES blackened(L(s))(C(s),M(s))
+
+  I : pred[State] = inv1 & inv2
+
+  inv : LEMMA invariant(init,next)(I)
+END Garbage_Collector1_Inv
+\end{smallsession}
+%\caption{Invariant Lemmas for the First Refinement}
+\label{invariant-lemmas-refinement1}
+%\end{figure}
+
+Invariant  {\tt inv1} is    in fact  the safety property    originally
+formulated   for  the garbage  collector  \cite{Rus:GC}\@.    Its  proof
+requires  a  generalization,  which is   {\tt  inv2}\@.   This shows  an
+example,  where we have to strengthen  an invariant ({\tt  inv1}) to a
+stronger invariant ({\tt inv2}), which is then proven instead.
+
+
+\subsection{The Refinement Lemma}
+
+The first refinement step is formulated as an  application of the {\tt
+  Refinement} theory which we defined  on page \pageref{pvs-mappings}\@. 
+This is done in the theory  {\tt Refinement1} shown below.  
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Refinement1[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  S  : THEORY = Garbage_Collector [NODES,SONS,ROOTS]
+  I1 : THEORY = Garbage_Collector1[NODES,SONS,ROOTS]
+  IMPORTING Garbage_Collector1_Inv[NODES,SONS,ROOTS]
+  s     : VAR I1.State
+  r1,r2 : VAR (I)
+  n,k   : VAR Node
+  i     : VAR Index
+  cs    : VAR Colours
+
+  abs(s):S.State = M(s)
+
+  ...
+
+  R1 : THEORY = 
+    Refinement[S.O_State,
+      S.State,S.init,S.next,S.proj,
+      I1.State,I1.init,I1.next,I1.proj,
+      abs,I]      
+END Refinement1
+\end{smallsession}
+%\caption{First Refinement Lemma}
+\label{refinement1}
+%\end{figure}
+
+The   theory   imports  the  specification    garbage  collector  {\tt
+  Garbage\_Collector}, giving it the name  {\tt S}; the implementation
+{\tt  Garbage\_Collector1},  named  {\tt I1};  and  the implementation
+invariant     {\tt     I}    defined     in      the   theory     {\tt
+  Garbage\_Collector1\_Inv}\@.    The  theory  further     defines   the
+abstraction  function   {\tt  abs}, and    finally  applies the   {\tt
+  Refinement} theory.  This application gives rise to four TCCs (Type
+Checking Conditions)  generated  by PVS,  which  have to be  proven in
+order  for  the PVS  specification  to be  well  formed  (type check)\@. 
+Furthermore, the proof  of these TCCs yields  the correctness  of the
+refinement.  The TCCs are shown below:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+R1_TCC1: OBLIGATION FORALL s: S.proj(abs(s)) = I1.proj(s);
+ 
+R1_TCC2: OBLIGATION FORALL s: I1.init(s) IMPLIES S.init(abs(s));
+ 
+R1_TCC3: OBLIGATION (FORALL (r1: (I), r2: (I)):
+                      I1.next(r1, r2) IMPLIES S.next(abs(r1), abs(r2)));
+ 
+R1_TCC4: OBLIGATION invariant(I1.init, I1.next)(I);
+\end{smallsession}
+%\caption{TCCs Generated by Applying {\tt Refinement}}
+\label{tccs-refinement1}
+%\end{figure}
+
+There is  a TCC for  each {\tt  ASSUMPTION}   of the {\tt  Refinement}
+theory.  In particular {\tt  R1\_TCC3} states the simulation property,
+and {\tt R1\_TCC4} states  the invariant property.  As illustrated  in
+section                \ref{first-informal-refinement}            page
+\pageref{append-refines-collect}, we show for each concrete transition
+which abstract transition it simulates,  for example we had that  {\tt
+  APPEND.1} $\refines$ {\tt COLLECT.1},  which in this PVS  setting is
+formulated as the following lemma:
+
+%\begin{figure}[htb]
+\begin{smallsession}
+  sim_append_white : LEMMA
+    r2 = Rule_append_white(r1) IMPLIES
+      (EXISTS n: abs(r2) = Rule_append(n)(abs(r1))) OR abs(r2) = abs(r1)
+\end{smallsession}
+%\caption{PVS Version of {\tt APPEND}$_1$  $\refines$ {\tt COLLECT}}
+\label{pvs-append-refines-collect}
+%\end{figure}
+
+The   technique illustrated above   for  the first refinement step  is
+repeated  for the   next two,   yielding   two further  theories  {\tt
+  Refinement2}  and {\tt Refinement3}\@.  All 3  refinements  can now be
+composed,  and the bottom level implementation  can be shown to refine
+the  top  level  specification  using transitivity  of  the refinement
+relation.  This is expressed  in the theory {\tt Composed\_Refinement}
+below, where the theorem {\tt ref} is our main correctness criteria.
+
+%\begin{figure}[htb]
+\begin{smallsession}
+Composed_Refinement[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
+BEGIN
+  ASSUMING
+    roots_within : ASSUMPTION ROOTS <= NODES
+  ENDASSUMING
+  IMPORTING Refinement1[NODES,SONS,ROOTS]
+  IMPORTING Refinement2[NODES,SONS,ROOTS]
+  IMPORTING Refinement3[NODES,SONS,ROOTS]
+  IMPORTING Refine_Predicate
+  IMPORTING Refine_Predicate_Transitive
+
+  ref2 : LEMMA 
+    refines[S.O_State,S.State,I2.State]
+      (I2.init,I2.next,I2.proj)(S.init,S.next,S.proj)
+
+  ref : THEOREM 
+    refines[S.O_State,S.State,I3.State]
+      (I3.init,I3.next,I3.proj)(S.init,S.next,S.proj)
+END Composed_Refinement
+\end{smallsession}
+%\caption{Composing the Refinements}
+\label{composing-refinements}
+%\end{figure}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

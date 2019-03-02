@@ -1,0 +1,976 @@
+
+\chap{Theorem Proving: Proving Safety with PVS}{theorem-proving}
+
+In the   previous chapter, we  verified a  finite-state version of the
+protocol.  The  advantage of     the  verification was that     it was
+automatic.  In  this chapter, we shall  carry out the full-scale proof
+for  the   complete infinite-state protocol.   Since  \Murphi{} cannot
+handle infinite-state programs,  we need to  carry out this proof in a
+general   purpose  theorem prover like PVS.     In order to  obtain an
+infinite-state  protocol   in  PVS     we  apply a      \Murphi-to-PVS
+translator. That  is, we apply  this translator to the \Murphi-program
+in  the previous chapter,  and get  a corresponding PVS specification.
+This specification is, however, still finite-state since all the
+\Murphi{}-declarations have been  translated  directly.  To obtain the
+infinite-state   specification, we   modify  by-hand  a   few  of  the
+PVS-declarations.  It is worthwhile noting that in principle we really
+only    change a  few    declarations   to obtain  an   infinite-state
+specification.   It should be said, though,  that  in practice we have
+made additional modifications,  which again have motivated changes  to
+be  applied to the translator itself.   We will  present the resulting
+PVS-specification  and the  finite-to-infinite  changes needed,  since
+other translator-issues here are irrelevant.
+
+We  shall  first give  a  very short   introduction to  PVS.  Then, we
+describe the PVS-specification obtained  by the translation.  Finally,
+we  describe the correctness proof.    The full formal texts associated
+with this chapter are contained in appendix~\ref{app-theorem-proving}.
+
+
+\section{Short Introduction to PVS}
+
+PVS  (Prototype  Verification System) is   an  environment for writing
+specifications  and developing proofs \cite{ORS:PVS}.   It serves as a
+prototype  for exploring new  approaches to mechanized formal methods.
+PVS has  been strongly   influenced by  the observation  that  theorem
+proving  capabilities can be employed to  enrich the type  system of a
+typed logic via the notion of predicate subtypes, and conversely, that
+this  enriched type  system  facilitates expressive specifications and
+effective theorem proving.  PVS has also been guided by the experience
+that much of the  time and effort  in verification is in debugging the
+initial specification or proof idea.   A high bandwidth of interaction
+is useful at the exploratory  level whereas more automated  high-level
+proof   strategies  are desirable  at   an   advanced  stage of  proof
+development.    PVS   has   been  used   to    verify several  complex
+fault-tolerant algorithms, real-time and distributed protocols, and in
+several other  applications.   For more information,  see SRI's formal
+methods www-page: {\tt http://www.csl.sri.com/sri-csl-fm.html}.
+
+
+\subsection{The Specification Language}
+
+The     PVS   specification language builds      on  a classical typed
+higher-order   logic.  The  base  types  provided  by  the PVS library
+consist of   booleans,  real  numbers,  rationals,  integers,  natural
+numbers, lists, and so forth.  The primitive type constructors include
+those for forming function (e.g., {\tt [nat\ ->\ nat]}), record (e.g.,
+{\tt [\#\ a\ :\  nat,\ b\ :\ list[nat]\#]}) ,  and tuple  types (e.g.,
+{\tt  [int,\   list[nat]]}).  The  type  system  of PVS  includes {\em
+predicate subtypes\/}  that  consist of  exactly  those elements  of a
+given  type satisfying a  given predicate.  So  that, for example, the
+subtype of positive numbers is given by the  type {\tt \{n\ :\ nat\ |\
+n\ >\  0\}}.  Predicate subtypes are  used to explicitly constrain the
+domains and ranges of  operations  in a  specification and to   define
+partial functions, e.g., division, as  total functions on a  specified
+subtype.   In  general,   type checking   with  predicate  subtypes  is
+undecidable.\footnote{PVS  does have  an effective  type checker  which
+easily checks  for type correctness relative  to the simple types.  It
+generates proof obligations  corresponding to predicate subtypes.  The
+typical proof obligations  can be automatically  discharged by the PVS
+decision procedures.  The provability of such proof obligations is the
+only source of undecidability  in the PVS  type system so that none of
+the   benefits  of decidable type checking   are  lost.} PVS contains a
+further useful enrichment  to  the  type system in  the  form  of {\em
+dependent\/} function, record, and  tuple constructions where the type
+of one component  of a compound value depends  on the value of another
+component.   PVS terms  include   for  example constants,   variables,
+abstractions (e.g.,    {\tt  (LAMBDA\ (i\   :\ nat):\    i\  *\  i)}),
+applications (e.g., {\tt mod(i,\ 5)}), tuple constructions (e.g., {\tt
+(-5,\ cons(1,\ null))}), record  constructions (e.g., {\tt (\#\ a\ :=\
+2,\ b\  :=\ cons(1,\ null)\  \#)}), and record  updates (e.g., {\tt r\
+WITH\ [a\ :=\ 5,\ b\ :=\ cons(3,\ b(r))]}).  Note that the application
+{\tt a(r)} is used to access the {\tt a} field of record {\tt r}.  PVS
+specifications  are packaged  as  {\em theories\/}.    Theories can be
+parametric in types.   Type parametricity (or {\em polymorphism\/}) is
+used to capture those concepts or results that can be stated uniformly
+for all  types.  PVS also has  a facility for automatically generating
+abstract    data type   theories  (containing recursion  and  induction
+schemes).
+
+
+\subsection{The Proof Checker}
+
+The PVS proof checker is intended to  serve as a productive medium for
+debugging specifications  and for constructing  readable proofs.   The
+human verifier constructs proofs  in  PVS by repeatedly  simplifying a
+goal  (conjecture)  into subgoals  using   inference  rules, until  no
+further subgoals  remain.   A proof goal  in  PVS is  represented by a
+sequent.  PVS differs from most  proof checkers in providing primitive
+inference rules that are quite powerful, including decision procedures
+for ground linear arithmetic.  The  primitive rules also perform steps
+such   as  quantifier instantiation,   rewriting, beta-reduction,  and
+boolean  simplification.   PVS  has a   simple  strategy  language for
+combining  simple   inference steps    into  more complicated    proof
+strategies.  In  interactive  use, when  prompted  with a subgoal, the
+user types  in   a proof  command   that either  invokes   a primitive
+inference rule or a  compound proof strategy.   For example, the  {\tt
+skolem}  command introduces  Skolem  constants  for universal-strength
+quantifiers whereas    the  {\tt   inst}   command  instantiates    an
+existential-strength quantifier with  its witness.   The {\tt lift-if}
+command  invokes a  primitive  inference step  that  moves a block  of
+conditionals nested  within one  or more sequent  formulas to  the top
+level of the  formula.  The {\tt bddsimp}  command invokes  a compound
+propositional simplification decision procedure based on BDD's (Binary
+Decision Diagrams).   Proofs and partial  proofs can be saved, edited,
+and rerun.  It is possible to extend  and modify specifications during
+a proof;  the  finished proof has to    be rerun to   ensure that such
+changes are valid.
+
+
+\section{Applying a \Murphi-to-PVS Translator, and Becoming Infinite}
+
+Applying  the  translator  to the  \Murphi{}  program yields  two  PVS
+theories.  The  first  one  ({\tt  protocol})  contains  the  protocol
+itself, including the abstract protocol automaton that polices it. The
+second  theory  ({\tt protocol\_safe})  contains  the statement of the
+correctness  criteria.  This correctness criteria was implicit  in the
+\Murphi-program:  whenever  an  {\tt assert}  evaluated  to false, the
+verifier  would  terminate.  We  have  to find a way of modeling this in
+the PVS-specification.
+ 
+The       full   formal     PVS    theories     are     contained   in
+appendix~\ref{app-protocol-verification}.  Let us first have a look at
+{\tt protocol}.
+
+
+\subsection{The Protocol in PVS}
+
+The Protocol (obtained by the translation) is in PVS represented  as a
+theory (only part of this theory is shown here):
+
+\begin{smallsession}
+  protocol : THEORY
+  BEGIN
+    Data : TYPE = bool
+    last : posnat = 3
+    max  : posnat = 2
+      
+    Position : TYPE = \{i: int | 1 <= i AND i <= last+1\}
+    File     : TYPE = ARRAY[Position -> Data]
+    Msg      : TYPE = [# first  : bool, 
+                         last   : bool, 
+                         toggle : bool, 
+                         data   : Data #]
+    Spc      : TYPE = \{WR, SF, WA, SC, WT2\}
+
+    ...
+  END protocol
+\end{smallsession}
+
+The theory contains definitions of  constants, types, and (as we shall
+see,  indicated by {\tt ...})  functions,  relations, etc.  The  above
+definitions correspond to the  types and constants we highlighted from
+the \Murphi{}-program in the previous chapter.   The first three lines
+in the  theory  defines the type {\tt   Data} of data  ,   and the two
+constants: {\tt last} (number of messages in  a file), and {\tt max}
+(maximal number of retransmissions) .   In the \Murphi{} program these
+were defined to have certain finite  values ({\tt bool}, {\tt 3}, {\tt
+2}), and these values have been translated to the PVS-theory. There is
+also the definition of the type {\tt File} of files. Note that
+the keyword {\tt ARRAY} in PVS only has a commentary purpose: the type
+expression {\tt  ARRAY[A->B]}  is  in fact  equivalent   to the  total
+function space {\tt [A->B]}.  Messages {\tt Msg} that are communicated
+over the   {\tt K} channel are  records  with 4  fields.  The sender's
+program counter ranges over the enumerated type {\tt Spc}.
+
+It turns  out, that if  we  change  the three  first definitions  by
+removing  the  defining  right hand  sides, we  get  the  infinite-state
+specification of the ``real'' protocol that we  want. So we change these
+as follows:
+
+\begin{smallsession}
+  Data : NONEMPTY_TYPE
+  last : posnat
+  max  : posnat
+\end{smallsession}
+
+Now we have the infinite-state protocol which we  can expose to a full
+formal verification using the PVS prover.  Note  that we indicate {\tt
+Data} to   be a nonempty type;   as  a result  we  avoid certain proof
+obligations.   Let   us  explain   the  remaining    contents   of the
+theory.  Recall, that  the murphi program   contained a set of  global
+variables. The state is  in PVS modeled  as a record.  Hence, the type
+of  states is  defined as  follows (only   variables mentioned  in the
+previous chapter are illustrated):
+
+
+\begin{smallsession}
+  State : TYPE =
+    [# aerror          : bool,
+       afirst          : bool,
+       ahead           : Position,
+       afile           : File,
+       abusy           : bool,
+       stimer1_enabled : bool,
+       stimer1_on      : bool,
+       rn              : Counter,
+       head            : Position,
+       file            : File,
+       stoggle         : bool,
+       sfirst          : bool,
+       spc             : Spc,
+       req_full        : bool,
+       req             : File,
+       L               : bool,
+       K_full          : bool,
+       K               : Msg,
+       SAFE            : bool, 
+       ... 
+    #]
+\end{smallsession}
+
+The state  contains  34 variables in total. The  {\tt Counter} type is
+defined as  {\tt Counter: TYPE  = \{i:  int | 0 <= i AND i  <= max\}}.
+The  variable  {\tt SAFE} is  initially {\tt TRUE}, and  can  only  be
+changed by  the  abstract automaton when this  is  called to verify  an
+external action of the concrete protocol.
+
+Before turning to the individual transition rules of the protocol, let
+us illustrate how the abstract protocol automaton is defined.  Recall,
+that  in the \Murphi-program   it was   defined  as  a  collection  of
+procedures.  In PVS it  is defined  as a function   over the state. As
+arguments, it takes  a state, and an action  (the action  performed by
+the  concrete  protocol,  and  which   is  to  be   verified by    the
+automaton).  As result, it returns  a  new state,  where the  abstract
+variables of  the automaton have been changed,  and  where perhaps (in
+case the protocol is inconsistent  with the automaton), the {\tt SAFE}
+variable has  been set to  {\tt FALSE}.   The  invariant that we later
+want to verify is  exactly, that {\tt SAFE} is  always {\tt TRUE}. The
+type of  abstract automaton  actions is  defined  as an abstract  data
+type:
+
+\begin{smallsession}
+  Conf : TYPE = \{OK, NOT_OK, DONT_KNOW\}
+  IndT : TYPE = \{FIRST, INCOMPLETE, LAST\}
+
+  Action : DATATYPE
+    BEGIN
+      REQ(req:File):REQ?
+      IND(data:Data,ind:IndT):IND?
+      IND_ERR:IND_ERR?
+      CONF(conf:Conf):CONF?
+    END Action
+\end{smallsession}
+
+Two further types {\tt IndT} and {\tt Conf} are  needed. They  contain
+the  values  communicated to the environment  in  case  a  message  is
+transmitted, respectively  when a confirmation is  given (see previous
+chapter).   The {\tt DATATYPE} definition is short for a nested theory
+definition,  which  itself contains a  number of  definitions,  amongst
+these  the  definition  {\tt   Action  :  TYPE},  together   with  the
+constructors of this type: {\tt  REQ}, {\tt  IND}, {\tt IND\_ERR}, {\tt
+CONF}.  For example,  {\tt REQ} has the type  {\tt REQ  :
+[File -> Action]}.   Also destructors  (ex:  {\tt req}) and predicates
+(ex: {\tt REQ? :  [Action -> bool]} are defined. With  this  type, the
+abstract protocol can now be defined as follows:
+
+\begin{smallsession}
+  automaton(st:State,action:Action):State =
+    CASES action OF
+      REQ(f):
+        LET
+          st = st WITH [SAFE := NOT abusy(st)],
+          st = st WITH [abusy := TRUE],
+          st = st WITH [afile := f],
+          st = st WITH [ahead := 1]
+        IN st,
+      IND(d,i): ...,
+      IND_ERR : ...,
+      CONF(c) : ...
+    ENDCASES
+\end{smallsession}
+
+The body is a  case-expression over  the constructors  of  the  action
+data type.  In the {\tt REQ(f)} case, {\tt f} is bound, the  {\tt SAFE}
+variable  is  set  to denote  the  value  of  the  condition  {\tt NOT
+abusy(st)}   ---   exactly  the   {\tt   assert}   condition  in   the
+\Murphi{}-program. The state is then ``updated''  corresponding  to the
+\Murphi{}-assignment statements.
+
+Now to the transition rules. The first two rules correspond to the
+\Murphi{}-rules {\tt write\_req} and {\tt read\_req}:
+
+\begin{smallsession}
+  Rule_write_req(st:State,f:File):State =
+    IF NOT req_full(st) THEN 
+      LET 
+        st = st WITH [req_full := TRUE],
+        st = st WITH [req := f]
+      IN st
+    ELSE 
+      st
+    ENDIF
+
+  Rule_read_req(st: State):State =
+    IF spc(st) = WR AND req_full(st) THEN 
+      LET 
+        st = st WITH [req_full := FALSE],
+        st = st WITH [file := req(st)],
+        st = st WITH [head := 1],
+        st = st WITH [spc  := SF],
+        st = automaton(st, REQ(req(st)))
+      IN st
+    ELSE 
+      st
+    ENDIF
+\end{smallsession}
+
+Note  how  the  generic quantification  over  the data values  in  the
+\Murphi{}-program  here is  modeled as a  parameter to  the rule. The
+quantification occurs later. Note also how the read request rule applies
+the automaton. 
+
+Rules are    generally modeled as  functions of   type {\tt  [state ->
+state]};  that  is: they are  deterministic.   Non-determinism is only
+allowed  at the  outermost level where,  in  each execution step, {\em
+any}  rule with a  true pre-condition  may be  selected for execution.
+This decision to  model rules as functions  is in  accordance with the
+semantics of UNITY \cite{CM:UNITY}.  Another choice would be to define
+rules as relations of  type {\tt [[state,state] ->  bool]}, as  is the
+case in TLA \cite{TLA:TOPLAS94}.  This  techniques has in fact earlier been
+applied in  PVS   \cite{Sha:PVS.Real-Time}.   We chose    however  the
+functional style since we believed  that the theorem prover would deal
+more  efficiently  with  equalities   of the form  {\tt   new\_state =
+Rule(old\_state)}    than    with   general    predicates  like   {\tt
+Rule(old\_state,new\_state)}.  To  say whether this  is the case still
+requires some experiments.  In  any case, our  encoding may be seen as
+being a special instance of the more general notion of temporal logic
+\cite{Eme:Temp.Logic}.
+
+\noindent Another perhaps more interesting rule is:
+
+\begin{smallsession}
+  Rule_write_K(st:State):State =
+    IF spc(st) = SF AND NOT K_full(st) THEN 
+      LET 
+        st = st WITH [K_full := TRUE],
+        st = st WITH [(K)(first) := sfirst(st)],
+        st = st WITH [(K)(last) := head(st) = last],
+        st = st WITH [(K)(toggle) := stoggle(st)],
+        st = st WITH [(K)(data) := file(st)(head(st))],
+        st = st WITH [spc := WA],
+        st = st WITH [rn := incr_rn(rn(st))],
+        st = st WITH [stimer1_on := TRUE]
+      IN st
+    ELSE  
+      st
+    ENDIF
+\end{smallsession}
+
+The behavior of the program is now  modeled as a transition relation
+{\tt transition  : [[state,state] -> bool]} between  states. That  is,
+{\tt transition(s1,s2)} holds between two  states  {\tt s1}  and  {\tt
+s2}, if one of the rules can bring us from state {\tt s1} to {\tt s2}.
+The relation is defined as follows:
+
+\begin{smallsession}
+  transition(st1,st2:State):bool =
+    (EXISTS (f: File): 
+       st2 = Rule_write_req(st1,f))
+    OR st2 = Rule_lose_msg(st1)
+    OR st2 = Rule_read_req(st1)
+    OR st2 = Rule_write_K(st1)
+    OR st2 = Rule_stimer1(st1)
+    ...
+\end{smallsession}
+
+Note how the non-deterministic generation of input requests to the protocol
+is modeled by an existential quantification.
+
+To finish the picture, it needs to be said what is a program. The following
+definitions do exactly that.
+
+\begin{smallsession}
+  IMPORTING sequences[State]
+
+  Behavior: TYPE = sequence
+
+  program(aa:Behavior):bool =
+    aa(0) = startstate 
+      AND 
+    FORALL (n:nat): transition(aa(n),aa(n+1))
+\end{smallsession}
+
+First,  the theory of sequences   is imported.  Sequences are infinite
+lists of elements, in our  case  states.  The {\tt  sequences[t:TYPE]}
+theory is  parameterized with  a type {\tt   t} and contains  the type
+definition {\tt sequence  : TYPE =  [nat -> t]}. Hence, the  {\em
+behavior} of a program is a sequence of states: a total function from
+natural numbers to states -- 0 is mapped  to the first state, 1 to
+the second state, etc.
+
+The protocol theory contains a  definition of the  {\tt startstate} (a
+particular  record not  shown),  and  with  this we  can  define  what
+programs are.  A  program is  a predicate on behaviors:  a  behavior
+satisfies a  program (is an execution of the program), if the first
+state is the startstate, and if each two successive states are related
+by the transition relation.
+
+
+\subsection{The Correctness Criteria i PVS}
+
+We mentioned earlier that the \Murphi{}-to-PVS translator generates two
+theories:   {\tt   protocol}   above,  and   then   the   theory  {\tt
+protocol\_safe} containing the correctness criteria to be proved:
+
+\begin{smallsession}
+  protocol_safe : THEORY
+  BEGIN
+    IMPORTING protocol
+
+    invariant(p:pred[State]):bool =
+      FORALL (aa:Behavior):
+        program(aa) IMPLIES
+          FORALL (n:nat): p(aa(n));
+
+    safe(st:State):bool =
+      SAFE(st)
+
+    invariant : THEOREM invariant(safe)
+
+  END protocol_safe
+\end{smallsession}
+
+The  theory defines two  predicates  and  a  theorem: the  correctness
+criteria.  The predicate {\tt invariant} takes as argument a predicate
+{\tt p} on states ({\tt  pred[state]} is short for the  function  space
+{\tt [state ->  bool]}). It  returns {\tt TRUE} if for all  execution
+traces {\tt aa} of the  {\tt program}: the  predicate {\tt p} holds in
+every position of that trace. Note  that the {\tt program} referred to
+here is the one defined in {\tt protocol}.
+
+The safety property we want to verify is defined by the predicate {\tt
+safe}.  The correctness criteria is  defined by the formula named {\tt
+invariant}.   It expresses that for  every   state, {\tt st},  reachable
+during   a program execution,    {\tt  SAFE(st)}  evaluates  to   {\tt
+TRUE}. The next section describes how we carried out the proof of {\tt
+correct}.
+
+
+\section{The Correctness Proof}
+
+We now sketch the correctness  proof in PVS\@.
+Appendices~\ref{app-protocol-tactics}, \ref{app-protocol-scripts},
+\ref{app-protocol-status} and~\ref{app-protocol-depend}  
+contain listings  of the proof  tactics  (user defined proof commands),
+the proof scripts (expansion of what was typed during proof sessions),
+status of lemmas, and dependencies between lemmas.
+
+The statement we wish to prove is the invariant {\tt safe} in
+formula {\tt invariant}, but obviously
+this invariant needs to be greatly strengthened in order to be provable.
+Since we cannot anticipate this strengthening, we state the invariant as
+{\tt I} below with an open slot {\tt Delta} where the
+strengthening can be introduced.  During a proof we can add lemmas
+asserting that the auxiliary invariants are implied by {\tt Delta}\@.
+Eventually we define Delta to be the conjunction of these auxiliary
+invariants, and similarly prove each of these auxiliary invariants.
+
+\begin{smallsession}
+  Delta : pred[State]
+  I : pred[State] = Delta & safe
+  invariant : THEOREM invariant(I)
+\end{smallsession}
+
+The operator {\tt \&} has been ``lifted'' from applying to booleans into
+applying to state predicates.  This  is shown  below together  with  a
+similar lifting of implication, and a new function {\tt pi}:
+
+\begin{smallsession}
+  p,p1,p2 : VAR pred[State]
+
+  IMPLIES(p1,p2):bool =
+    FORALL (st:State):p1(st) IMPLIES p2(st);
+
+  &(p1,p2):pred[State] =
+    LAMBDA (st:State): p1(st) AND p2(st)
+
+  pi(p):bool =
+    p(startstate)
+      AND 
+    FORALL (st1, st2: State): 
+      (I(st1) AND p(st1) AND transition(st1, st2)) IMPLIES p(st2);
+\end{smallsession}
+
+The {\tt pi}  function expresses the  inductive  step in proving  some
+sub-invariant {\tt  p}, assuming that the invariant   {\tt I} holds in
+the  pre-state.  Now, to prove  {\tt  invariant}, we  need  to prove the
+lemmas:
+
+\begin{smallsession}
+  p_safe  : LEMMA pi(safe)
+  p_Delta : LEMMA pi(Delta)
+\end{smallsession}
+
+We first  prove {\tt p\_safe} in the form of the sequent: \comment{To  prove  such a  lemma, the curser is
+positioned at  it's occurrence,  and the  PVS  {\tt prove}  command is
+launched. The result is a new window, containing the sequent:
+}
+\begin{smallsession}
+    |-------
+  \{1\}   pi(safe)
+\end{smallsession}
+
+This sequent has no antecedent formulas (above the  line)  and just one
+consequent formula (below the  line) numbered~{\tt 1}.   A  sequent
+represents the implication  between the conjunction of the antecedents
+and  the disjunction  of   the consequents.  In   the  above  case the
+antecedent is {\tt TRUE}. \comment{The steps now described  are in fact carried
+out automatically via a tactic designed with this particular purpose.}
+By applying a proof strategy that initiates the induction, discharges the
+base case, eliminates universal quantification (by introducing the Skolem
+constants {\tt st1!1} and {\tt st2!1}),  expands out the
+{\tt transition}, and then case-splits according to the program
+actions, we get 17 sequents, one of which is:
+
+\label{rule-sequent}
+\begin{smallsession}
+  \{-1\}   st2!1 = Rule_read_req(st1!1)
+  [-2]   Delta(st1!1)
+  [-3]   safe(st1!1)
+    |-------
+  [1]   safe(st2!1)
+\end{smallsession}
+
+At this point  a pre-defined tactic is applied,  which tries to  prove
+the sequent  automatically.  Our experience  is that all such sequents
+that  are   provable by  syntactic   deduction  are  proved   by  this
+tactic. However,  when the tactic is applied  to a sequent that is not
+provable solely by the tactic,  a reduced sequent  is returned which  shows what
+remains to be proven and this gives a hint as  to what invariant might
+be missing in the proof. In the above case such a sequent is returned:
+
+\label{reduced-rule-sequent}
+\begin{smallsession}
+  \{-1\}   spc(st1!1) = WR
+  \{-2\}   req_full(st1!1)
+  \{-3\}   abusy(st1!1)
+  [-4]   Delta(st1!1)
+  \{-5\}   SAFE(st1!1)
+    |-------
+\end{smallsession}
+
+That is, we need  to prove that the  conjunction of the antecedents is
+{\tt FALSE} (inconsistent). The only   ``interesting'' variables in  the
+sequent are {\tt spc}  and {\tt abusy}  so we conclude that {\tt [-1]}
+and {\tt [-3]} are inconsistent.  Now,  for each new invariant we add,
+we need to assume that it is implied by  {\tt Delta} (such that we can
+use  it in  proving the  above sequent) and  prove  that  also this is
+preserved   by the transition  relation. In  total, the above unsolved
+sequent makes us add the following declarations:
+
+\begin{smallsession}
+  safe_1(st):bool = spc(st)=WR IMPLIES NOT abusy(st)
+  d_safe_1 : LEMMA Delta IMPLIES safe_1
+  p_safe_1 : LEMMA pi(safe_1)
+\end{smallsession}
+
+In PVS, the tree declarations above can be added during a proof (using the
+{\tt add-declaration} command) without having to stop and restart the
+proof.  Note that applying lemma {\tt d\_safe\_1} at this point will prove
+the sequent since the antecedent will then contain {\tt abusy(st1!1)} as
+well as {\tt NOT abusy(st1!1)} and that evaluates to {\tt FALSE}.
+
+During the proof of {\tt p\_safe\_1}  other variants are again needed,
+and   the  same pattern is   repeated.  The technique  allows mutually
+recursive proofs.
+
+It turns out that some invariants are  logical consequences of others,
+and   that for  these we can    avoid  reasoning about the  transition
+relation and  just prove the  implication.  As  a matter of  fact, our
+invariant   {\tt     safe\_1}  is   such   a  consequence:   following
+\cite{HSV:Protocol.Coq}, we namely  define an invariant that describes
+a  relation between the variables  of the abstract {\tt automaton} and
+the variables in  the protocol, and {\tt safe\_1}  is a consequence of
+this invariant.  For example, the following  relation for the abstract
+variable {\tt abusy} is defined and proved to be an invariant:
+
+\label{ref-abusy}
+\begin{smallsession}
+  ref_abusy(st):bool =
+    abusy(st) = (spc(st) = SF OR spc(st) = WA OR spc(st) = SC)
+
+  d_ref_abusy : LEMMA Delta IMPLIES ref_abusy
+
+  p_ref_abusy : LEMMA pi(ref_abusy)
+\end{smallsession}
+
+With  this  we  can define {\tt  safe\_1} as  a  consequence  that  is
+obviously true, so we don't need  to prove {\tt pi(safe\_1)}. Hence we
+change the lemma {\tt p\_safe\_1} to:
+
+\begin{smallsession}
+  p_safe_1 : LEMMA ref_abusy IMPLIES safe_1
+\end{smallsession}
+
+When  all new invariants have been   dealt with, the correctness proof
+can be finished. The {\tt Delta} is now defined  as the conjunction of
+all the new invariants, and we can then prove {\tt p\_Delta} using the
+{\tt pi}-lemmas.  Also, all the lemmas  of the form {\tt Delta IMPLIES
+...} can  now be proven.   58 invariants  were  needed  in the  proof,
+yielding 118 lemmas in  total.  Rerunning the  proof takes less than 3
+hours.  The above proof methodology was in  fact applied in the second
+proof attempt and the whole proof took only a few weeks.
+
+The verification of the protocol has been automated as far as possible
+by defining  a  set of  tactics (occupying five  pages).  
+One can say that the proof  is automated ``up to''  lemmas.  That is: if
+some  sequent is  provable, then it  is proved   automatically using a
+single  tactic.  If  it  is not  provable,  but true in  the
+context  of   the  protocol,   we    have to    identify  which  extra
+lemma/invariant is needed.  When we have defined this new lemma, it is
+{\em included} as an  antecedent in the sequent  we try to prove,  and
+then again the  rest is automatic (proved by  a  single tactic).  The
+obtained level of   automation could be achieved  only  because of the
+flexibility provided by the PVS decision procedures.
+
+The far most interesting lemmas are {\tt pi}-lemmas, where a predicate
+is stated to be preserved by the  program, and where  we have to prove
+this over  the structure  of   the program:  one  sub case   for  each
+transition rule.    The following strategy,   when applied  to  a {\tt
+pi}-lemma  generates 17 (unproved)  sequents, one for  each  of the 17
+transition rules of the protocol:
+
+\begin{smallsession}
+  (defstep preserved ()
+    (then
+      (expand "pi")
+      (expand "preserved")
+      (spread
+        (split)
+        ((grind)
+         (then
+           (skosimp)
+           (expand "I")
+           (expand "&")
+           (flatten)
+           (auto-rewrite-theory "protocol" :always? T)
+           (auto-rewrite-theory "protocol_safe" :always? T)
+           (stop-rewrite "Delta")
+           (expand "transition")
+           (split)))))
+    "..."
+    "...")
+\end{smallsession}
+
+Tactics    are written in   LISP:  the  name  of  the  tactic is  {\tt
+preserved}; it has no arguments {\tt ()}, and it's  body is a sequence
+({\tt then})  of commands.  Two strings follow  the command: the first
+is an  explanation of it's  effect which can be  obtained  via the PVS
+online help-commands;    the second is  what   is printed when   it is
+activated during a proof.
+
+First, the definition   of {\tt pi}  is  brought  into place  by  {\tt
+(expand "pi")}. The {\tt (split)} will then generate two subgoals, one
+for the initial {\tt startstate}, and one for the inductive step ({\tt
+FORALL ...}). The {\tt startstate}  case is proved automatically using
+the PVS tactic   {\tt (grind)}: note   that {\tt spread}  applies {\tt
+(grind)} to the first subgoal  of the split,  and the inner {\tt (then
+...)} to the second subgoal --  the inductive step. The inductive step
+is  after skolemization further {\tt  split} into 17 subgoals, one for
+each transition  rule disjunct in the  definition of {\tt transition}.
+One  of these   sequents   is  the  one   we  saw earlier   (see  page
+\pageref{rule-sequent}), and which is repeated here:
+
+\begin{smallsession}
+  \{-1\}   st2!1 = Rule_read_req(st1!1)
+  [-2]   Delta(st1!1)
+  [-3]   safe(st1!1)
+    |-------
+  [1]   safe(st2!1)
+\end{smallsession}
+
+In  fact, we would   like PVS to  try out  itself  to prove  each such
+sequent before ``giving  up'' and apply  for human interaction for some
+extra  invariant  to be  discovered. 
+The following tactic tries to prove such a sequent:
+
+\begin{smallsession}
+  (defstep action ()
+    (then
+      (skolem!)
+      (replace -1)
+      (delete -1)
+      (do-rewrite)
+      (lift-if)
+      (musimp)
+      (grind NIL))
+    "..."
+    "...")
+\end{smallsession}
+
+In  those  cases   where  no extra     sub-invariants  are needed   as
+assumptions, this tactic  proves    the sequent corresponding    to  a
+transition rule.  Now  the complete  tactic  that  is applied to  {\tt
+pi}-lemmas is defined as follows:
+
+\begin{smallsession}
+  (defstrat pr ()
+    (then
+      (preserved)
+      (action))
+    "..."
+    "...")
+\end{smallsession}
+
+This  tactic will  first   apply  {\tt  (preserved)}, resulting  in  17
+subgoals,  and  then apply {\tt (action)}  to  each of these. Those 
+that are not proved are left to us to prove via invariant strengthening.
+
+
+\section{Invariant Checking in \Murphi{} and Weakest Pre-conditions}
+
+Two further techniques to ease the proof have  been applied. These are
+described below.
+
+
+\subsection{Invariant Checking in \Murphi}
+
+Whenever a  new invariant  were  added, before proving  it in  PVS, we
+model  checked it within the  \Murphi-program.   In this way a certain
+confidence could be obtained before  throwing more costly efforts into
+the PVS infinite-state proof. The full  set of \Murphi{} invariants is
+contained in appendix~\ref{app-murphi-invariants}.  As an example, the
+invariants   {\tt  safe\_1}  and  {\tt ref\_abusy}  have the   following
+formulation in \Murphi{}:
+
+\begin{alltt}
+  Invariant "safe1"
+    spc=WR -> ! abusy;
+
+  Invariant "abusy"
+    abusy = (spc = SF | spc = WA | spc = SC);
+\end{alltt}
+
+The \Murphi{}  verifier would (in principle) then follow all execution
+traces,  and in  each state verify that each  invariant  was true. The
+assertion construct  that we  saw earlier, and this  invariant construct,
+are both derived syntax based on a uniform unique error construct.
+
+
+\subsection{Weakest Pre-conditions}
+
+The example proof we have  just seen illustrated,  shows how a  single
+unproved sequent  is returned by the tactic  {\tt action} in  case the
+sequent (representing a particular  transition rule) it is applied  to
+fails to prove (see  page \pageref{reduced-rule-sequent}). In general,
+however, several (from 1  to 10) such  sequents were returned, and all
+would  be examined to produce a  guess for a missing invariant, making
+the guessing less  obvious.  This lead   to the idea to  generate the
+weakest pre-condition \cite{Dij:Discipline} of the relevant transition
+rule with respect to  the invariant to be   proven.  In fact,  in some
+cases this was done by hand on a  piece of paper when inspiration was
+missing.  To ease that process,  we experimented with tactics that could
+automatically generate these weakest pre-conditions.  In practice, the
+goal was  to generate {\em one} unproved  sequent instead of many; but
+reduced as  much as possible so that  it would become  easy  to make a
+guess about what minimal invariant was missing. 
+
+Let us  first shortly recall the theory  of weakest pre-conditions, and
+then  put  it  into  the context of   our transition  system.  Weakest
+pre-conditions  were  introduced  to  give  semantics  to  programming
+languages \cite{Dij:Discipline}.  The  mechanism was that of predicate
+transformers producing a  weakest pre-condition from a pair consisting
+of a   command and a  post-condition.  The   intuition being that, the
+weakest pre-condition  specifies   all the initial  states   such that
+executing the command in one of these will result in a state satisfying
+the  post-condition. Assume that $R$ is  some post-condition, and
+that $c$   is some command, then  by  $wp(c,R)$ we  denote the
+weakest pre-condition generated by the predicate transformer $wp$.
+As an example, the weakest  pre-condition of an assignment statement is
+obtained by  replacing (in the post-condition)  all occurrences  of the
+assigned variable by the right hand side of the assignment:
+
+\begin{eqnarray*}
+  wp(x := e,R) &=& R\{x \mapsto e\}
+\end{eqnarray*}
+
+\noindent So for example:
+
+\begin{eqnarray*}
+  wp(x := x-1,x > 0)  &=&  x-1 > 0\\
+                      &=&  x > 1
+\end{eqnarray*}
+
+Other  examples,   continued in   this  pseudo-programming  style, are
+weakest pre-conditions of conditionals, sequential compositions and the
+skip-command that has no effect on the state:
+
+\begin{eqnarray*}
+  wp(\mbox{\bf if}\; e \;\mbox{\bf then}\; c_1 
+                       \;\mbox{\bf else}\; c_2,R) &=& 
+    (e \Rightarrow wp(c_1,R)) \wedge (\neg e \Rightarrow wp(c_2,R))\\
+  wp(c_1;c_2,R) &=& wp(c_1,wp(c_2,R))\\
+  wp(\mbox{\bf skip},R) &=& R
+\end{eqnarray*}
+
+In fact  these four rules illustrate very  well the rules we  need for
+our  purposes since no transition rule   contains loop constructs (the
+only  loop is at the outermost  level).   
+
+As example, consider the following transition  rule for timer 1 in the
+sender (we earlier saw a \Murphi{}-version of it):
+
+\begin{smallsession}
+  Rule_stimer1(st:State):State =
+    IF stimer1_on(st) AND stimer1_enabled(st) THEN
+      LET 
+        st = IF rn(st) = max THEN 
+               LET st = st WITH [spc := SC] IN st
+             ELSE 
+               LET st = st WITH [spc := SF] IN st
+             ENDIF,
+        st = st WITH [stimer1_on := FALSE],
+        st = st WITH [stimer1_enabled := FALSE]
+      IN st
+    ELSE 
+      st
+    ENDIF
+\end{smallsession}
+
+In proving    the  invariant  {\tt  p\_ref\_abusy} from    above (page
+\pageref{ref-abusy}), the following  sequent is generated  (amongst 17)
+after splitting the transition relation:
+
+\begin{smallsession}
+  p_ref_abusy.2.11 :  
+
+  \{-1\}   st2!1 = Rule_stimer1(st1!1)
+  [-2]   Delta(st1!1)
+  [-3]   safe(st1!1)
+  [-4]   ref_abusy(st1!1)
+    |-------
+  [1]   ref_abusy(st2!1)
+\end{smallsession}
+
+Let us first apply the technique we have used before.  This sequent is
+not provable, and applying  the tactic  {\tt  (action)} at  this point
+hence returns two sequents:
+
+\begin{smallsession}
+p_ref_abusy.2.11.1 :  
+
+[-1]   Delta(st1!1)
+\{-2\}   SAFE(st1!1)
+\{-3\}   (stimer1_on(st1!1))
+\{-4\}   (stimer1_enabled(st1!1))
+\{-5\}   (rn(st1!1)) = (max)
+\{-6\}   SC = SC
+  |-------
+\{1\}   abusy(st1!1)
+\{2\}   spc(st1!1) = SF
+\{3\}   spc(st1!1) = WA
+\{4\}   spc(st1!1) = SC
+
+
+p_ref_abusy.2.11.2 :  
+
+[-1]   Delta(st1!1)
+\{-2\}   SAFE(st1!1)
+\{-3\}   (stimer1_on(st1!1))
+\{-4\}   (stimer1_enabled(st1!1))
+\{-5\}   SF = SF
+  |-------
+\{1\}   abusy(st1!1)
+\{2\}   spc(st1!1) = SF
+\{3\}   spc(st1!1) = WA
+\{4\}   spc(st1!1) = SC
+\{5\}   (rn(st1!1)) = (max)
+\{6\}   SC = SF
+\end{smallsession}
+
+By studying these two sequents, we guess that the missing invariant is:
+
+\begin{smallsession}
+  stimer1_1(st):bool =
+    stimer1_enabled(st) IMPLIES spc(st) = WA
+\end{smallsession}
+
+Let us now try to calculate the weakest pre-condition. So we return to
+the sequent:
+
+\begin{smallsession}
+  p_ref_abusy.2.11 :  
+
+  \{-1\}   st2!1 = Rule_stimer1(st1!1)
+  [-2]   Delta(st1!1)
+  [-3]   safe(st1!1)
+  [-4]   ref_abusy(st1!1)
+    |-------
+  [1]   ref_abusy(st2!1)
+\end{smallsession}
+
+The  {\tt Rule\_stimer1} rule can  be  regarded as  a command, and the
+formula {\tt ref\_abusy(st2!1)} below  the line can  be regarded as the
+post-condition.   The information needed  to prove  this sequent is
+the weakest pre-condition of these two. The reader may check that
+the following is the weakest pre-condition:
+
+\begin{smallsession}
+  (NOT (stimer1_on(st1!1) & stimer1_enabled(st1!1))) IMPLIES
+      (abusy(st1!1) = (spc(st1!1) = SF OR 
+                       spc(st1!1) = WA OR 
+                       spc(st1!1) = SC))
+  AND
+  (stimer1_on(st1!1) & stimer1_enabled(st1!1)) IMPLIES 
+      abusy(st1!1)
+\end{smallsession}
+
+It turns out, that we can generate this condition using the tactic:
+
+\begin{smallsession}
+  (defstep generate-wp ()
+    (then
+      (replace*)
+      (delete -1)
+      (do-rewrite)
+      (lift-if)
+      (assert))
+  "..."
+  "...")
+\end{smallsession}
+
+That is, the result of applying this tactic to the sequent above is:
+
+\begin{smallsession}
+  p_ref_abusy.2.11 :  
+
+  [-1]   Delta(st1!1)
+  [-2]   SAFE(st1!1)
+  [-3]   abusy(st1!1) = 
+           (spc(st1!1) = SF OR spc(st1!1) = WA OR spc(st1!1) = SC)
+    |-------
+  \{1\}   IF (stimer1_on(st1!1)) AND (stimer1_enabled(st1!1)) THEN 
+          abusy(st1!1)
+        ELSE 
+          abusy(st1!1) = 
+            (spc(st1!1) = SF OR spc(st1!1) = WA OR spc(st1!1) = SC)
+        ENDIF
+\end{smallsession}
+
+We see that the {\tt  ELSE} branch trivially evaluates  to true due to
+the inductive assumption    in  {\tt [-3]}.   Further applying   the
+builtin tactic     {\tt  (bddsimp)}  --- which    does   propositional
+simplification using BDD's --- yields the one-sequent simplification:
+
+\begin{smallsession}
+p_ref_abusy.2.11 :  
+
+[-1]   Delta(st1!1)
+[-2]   SAFE(st1!1)
+\{-3\}   (stimer1_on(st1!1))
+\{-4\}   (stimer1_enabled(st1!1))
+  |-------
+\{1\}   abusy(st1!1)
+\{2\}   spc(st1!1) = SF
+\{3\}   spc(st1!1) = WA
+\{4\}   spc(st1!1) = SC
+\end{smallsession}
+
+Now we can more conveniently make our guess about the missing invariant.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,0 +1,161 @@
+
+Traces[State : TYPE] : THEORY
+
+BEGIN
+
+  init : VAR pred[State]
+  next : VAR pred[[State,State]]
+  sq   : VAR sequence[State]
+  n    : VAR nat
+
+  trace(init,next)(sq):bool =
+    init(sq(0)) AND
+    FORALL n: next(sq(n),sq(n+1))
+
+  p  : VAR pred[State]
+
+  invariant(init,next)(p):bool =
+    FORALL (tr:(trace(init,next))): FORALL n: p(tr(n))
+
+END Traces
+
+
+Refine_Predicate[
+  O_State : TYPE,
+  S_State : TYPE,
+  I_State : TYPE] : THEORY
+
+BEGIN
+
+  IMPORTING Traces
+
+  s_init : VAR pred[S_State]
+  s_next : VAR pred[[S_State,S_State]]
+  s_proj : VAR [S_State -> O_State]
+
+  i_init : VAR pred[I_State]
+  i_next : VAR pred[[I_State,I_State]]
+  i_proj : VAR [I_State -> O_State]
+
+  refines(i_init,i_next,i_proj)(s_init,s_next,s_proj):bool =
+    FORALL (i_tr:(trace(i_init,i_next))):
+      EXISTS (s_tr:(trace(s_init,s_next))): 
+        map(i_proj,i_tr) = map(s_proj,s_tr)  
+
+END Refine_Predicate
+
+
+Refine_Predicate_Transitive[
+  O_State : TYPE,
+  State1  : TYPE,
+  State2  : TYPE,
+  State3  : TYPE] : THEORY
+
+BEGIN
+
+  IMPORTING Refine_Predicate
+
+  init1 : VAR pred[State1]
+  next1 : VAR pred[[State1,State1]]
+  proj1 : VAR [State1 -> O_State]
+
+  init2 : VAR pred[State2]
+  next2 : VAR pred[[State2,State2]]
+  proj2 : VAR [State2 -> O_State]
+  
+  init3 : VAR pred[State3]
+  next3 : VAR pred[[State3,State3]]
+  proj3 : VAR [State3 -> O_State]
+
+  transitive : LEMMA 
+    refines[O_State,State2,State3]
+      (init3,next3,proj3)(init2,next2,proj2) AND 
+    refines[O_State,State1,State2]
+      (init2,next2,proj2)(init1,next1,proj1)
+      IMPLIES
+    refines[O_State,State1,State3]
+      (init3,next3,proj3)(init1,next1,proj1)
+
+END Refine_Predicate_Transitive
+
+
+Refinement[
+  O_State : TYPE,
+
+  S_State : TYPE,
+  S_init  : pred[S_State],
+  S_next  : pred[[S_State,S_State]],
+  S_proj  : [S_State -> O_State],
+
+  I_State : TYPE,
+  I_init  : pred[I_State],
+  I_next  : pred[[I_State,I_State]],
+  I_proj  : [I_State -> O_State],
+
+  abs     : [I_State -> S_State],
+  I_inv   : [I_State -> bool]] : THEORY
+
+BEGIN
+
+  ASSUMING
+
+    IMPORTING Traces
+
+    s     : VAR I_State
+    r1,r2 : VAR (I_inv)
+
+    proj_id : ASSUMPTION
+      FORALL s: S_proj(abs(s)) = I_proj(s)
+
+    init_h : ASSUMPTION 
+      FORALL s: I_init(s) IMPLIES S_init(abs(s))
+
+    next_h : ASSUMPTION 
+      I_next(r1,r2) IMPLIES S_next(abs(r1),abs(r2))
+
+    invar : ASSUMPTION
+      invariant(I_init,I_next)(I_inv)
+
+  ENDASSUMING
+
+  IMPORTING Refine_Predicate[O_State,S_State,I_State]
+
+  ref : THEOREM refines(I_init,I_next,I_proj)
+                       (S_init,S_next,S_proj)
+
+END Refinement
+
+
+Invariant_Predicates[State : TYPE] : THEORY
+
+BEGIN
+
+  IMPORTING Traces[State]
+
+  p,p1,p2 : VAR pred[State]
+  s,s1,s2 : VAR State
+  init    : VAR pred[State]
+  next    : VAR pred[[State,State]]
+  inv     : VAR pred[State]
+
+  IMPLIES(p1,p2):bool = FORALL s: p1(s) IMPLIES p2(s);
+
+  &(p1,p2):pred[State] = LAMBDA s: p1(s) AND p2(s)
+
+  preserved(init,next)(inv)(p):bool =
+    (init IMPLIES p) AND
+    FORALL s1,s2:
+      inv(s1) AND p(s1) AND next(s1,s2) IMPLIES p(s2)   
+
+  preserved_and : LEMMA 
+    preserved(init,next)(inv)(p1) AND 
+    preserved(init,next)(inv)(p2) 
+      IMPLIES 
+    preserved(init,next)(inv)(p1 & p2)
+
+  preserved_inv : LEMMA 
+    preserved(init,next)(inv)(inv) IMPLIES invariant(init,next)(inv)
+
+END Invariant_Predicates
+
+

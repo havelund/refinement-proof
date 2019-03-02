@@ -1,0 +1,3 @@
+(|Garbage_Collector|
+ (IMPORTING1_TCC1 "" (LEMMA "roots_within") (("" (PROPAX) NIL)))
+ (|next_TCC1| "" (ASSUMING-TCC)))

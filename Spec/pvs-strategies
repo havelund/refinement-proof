@@ -1,0 +1,324 @@
+(in-package 'pvs)
+
+;;;KH(1.August.96): Refinement Proof for the garbage collector
+
+
+;;;;;;;;;;;;;;;;;;;;;;
+;;;                ;;;
+;;;  LEMMA PROOFS  ;;;
+;;;                ;;;
+;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep mem-prop ()
+  (then (auto-rewrite-theory "Memory[NODES,SONS,ROOTS]" :always? T)
+        (grind))
+  "Used to prove simple memory properties."
+  "Proving memory property")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                    ;;;
+;;;  INVARIANT PROOFS  ;;;
+;;;                    ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep imply ()
+  (then
+    (expand "IMPLIES")
+    (skosimp)
+    (expand "I")
+    (expand "&")
+    (assert))
+  "Proves an implication of the invariant I."
+  "Proving implication of I")
+
+(defstrat pres (auto-rewr)
+  (then (subgoals auto-rewr)(action))
+  "Proves pi-property."
+  "Proving pi-property")
+
+(defstep subgoals (auto-rewr)
+  (then
+    (auto-rewrite-mem)
+    (auto-rewr)
+    (expand "pi")
+    (expand "preserved")
+    (spread
+      (split)
+      ((then
+         (expand "IMPLIES")
+         (skosimp)
+         (do-rewrite)
+         (grind NIL))
+       (then
+         (skosimp)
+         (stop-rewrite "I")
+         (expand "next")
+         (expand "MUTATOR")
+         (expand "COLLECTOR")
+         (split)))))
+  "Prepares Proof of pi-property."
+  "Preparing proof of pi-property")
+
+(defstep action ()
+  (then
+    (skolem-typepred)
+    (replace*)
+    (grind NIL))
+  "Tries to prove an action automatically."
+  "Proving action")            
+
+(defstep lemma-action ()
+  (then
+    (expand "IMPLIES")
+    (repeat (inst?))
+    (action))
+  "Proves action on the basis of lemmas."
+  "Proving action on basis of lemmas")
+
+(defstep pres-all ()
+  (then
+    (expand "I")
+    (expand "pi")
+    (repeat* (then (rewrite "preserved_and" 1)(delete 2))))
+  "Proves preservation of I."
+  "Proving preservation of I")
+
+(defstep inv-all ()
+  (then
+    (lemma "p_I")
+    (expand "pi")
+    (lemma "preserved_inv")
+    (inst?)
+    (assert))
+  "Proves invariant from pi-property."
+  "Proving invariant")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                 ;;;
+;;;  Auto-rewriting for the Memory  ;;;
+;;;                                 ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-mem ()
+  (then
+    (auto-rewrite-theory "Memory[NODES,SONS,ROOTS]"
+      :exclude ("accessible") :always? T))
+  "Establishes auto-rewrites for the memory."
+  "Establishing auto-rewrites for the memory")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                                     ;;;
+;;;  Commands for the THEORY "Garbage_Collector1_Inv":  ;;;
+;;;                                                     ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-inv-a ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector1[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector1_Inv" :always? T))
+  "Establishes auto-rewrites for Garbage_Collector1_Inv."
+  "Establishing auto-rewrites for Garbage_Collector1_Inv")
+
+(defstrat pres-a ()
+  (pres auto-rewrite-inv-a)
+  "Proves pi-property for Garbage_Collector1_Inv."
+  "Proving pi-property")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                                     ;;;
+;;;  Commands for the THEORY "Garbage_Collector2_Inv":  ;;;
+;;;                                                     ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-inv-b ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector2[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector2_Inv" :always? T))
+  "Establishes auto-rewrites for Garbage_Collector2_Inv."
+  "Establishing auto-rewrites for Garbage_Collector2_Inv")
+
+(defstrat pres-b ()
+  (pres auto-rewrite-inv-b)
+  "Proves pi-property for Garbage_Collector2_Inv."
+  "Proving pi-property")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                                     ;;;
+;;;  Commands for the THEORY "Garbage_Collector3_Inv":  ;;;
+;;;                                                     ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-inv-c ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector3[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector3_Inv" :always? T))
+  "Establishes auto-rewrites for Garbage_Collector3_Inv."
+  "Establishing auto-rewrites for Garbage_Collector3_Inv")
+
+(defstrat pres-c ()
+  (pres auto-rewrite-inv-c)
+  "Proves pi-property for Garbage_Collector3_Inv."
+  "Proving pi-property")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                     ;;;
+;;;  REFINEMENT PROOFS  ;;;
+;;;                     ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 
+(defstrat sim (auto-rewr)
+  (then
+    (simulate-init auto-rewr)
+    (simulate))
+  "Tries to prove a simulation automatically."
+  "Proving simulation")
+
+(defstep simulate-init (auto-rewr)
+  (then
+    (auto-rewr)
+    (skolem-typepred)
+    (flatten)
+    (stop-rewrite "I")
+    (skosimp)
+    (inst?))
+  "Initializes simulation proof."
+  "Initializing simulation proof")
+
+(defstep simulate ()
+  (then
+    (do-rewrite)
+    (grind NIL))
+  "Finishes simulation proof."
+  "Proving simulation")    
+
+(defstep lemma-simulate ()
+  (then
+    (expand "IMPLIES")
+    (repeat* (inst?))
+    (bddsimp)
+    (simulate))
+  "Proves simulation on the basis of lemmas."
+  "Proving simulation on the basis of lemmas")
+
+(defstep rassert ()
+  (let ((record-equality-fnums
+	 (find-all-sformnums
+		(s-forms (current-goal *ps*))
+		'*
+		#'(lambda (fmla)
+		    (and (equality? fmla)
+			 (recordtype?
+			  (find-supertype (type (args1 fmla))))))))
+	(rest-fnums
+	 (find-all-sformnums
+		(s-forms (current-goal *ps*))
+		'*
+		#'(lambda (fmla)
+		    (not
+		     (and (equality? fmla)
+			  (recordtype?
+			   (find-supertype (type (args1 fmla))))))))))
+    (then (assert rest-fnums)
+	  (assert record-equality-fnums)))
+  "Asserts all the other formulas before asserting record-equalities
+   since the latter can be expensive."
+  "Simplifying with rewriting and decision procedures but delaying
+   record equalities")
+
+(defstep begin-next ()
+  (then
+    (skosimp)
+    (expand "next")
+    (expand "MUTATOR")
+    (expand "COLLECTOR")
+    (flatten)
+    (split))
+  "Initializes next-simulation proof."
+  "Initializing next-simulation proof")
+
+(defstep end-next ()
+  (then
+    (inst?)
+    (bddsimp)
+    (assert))
+  "Ends a next-simulation branch using a corresponding lemma."
+  "Ending next-simulation branch")
+
+(defstep sim-transitive ()
+  (then
+    (inst?)
+    (inst?)
+    (bddsimp))
+  "Proves refinement via transitivity."
+  "Proving transitive refinement")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                          ;;;
+;;;  Commands for the THEORY "Refinement1":  ;;;
+;;;                                          ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-ref-a ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector1[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector1_Inv[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Refinement1" :always? T))
+  "Establishes auto-rewrites for Refinement1."
+  "Establishing auto-rewrites for Refinement1")
+
+(defstrat sim-a ()
+  (sim auto-rewrite-ref-a)
+  "Proves simulation for Refinement1."
+  "Proving simulation")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                          ;;;
+;;;  Commands for the THEORY "Refinement2":  ;;;
+;;;                                          ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-ref-b ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector1[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector2[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector2_Inv[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Refinement2" :always? T))
+  "Establishes auto-rewrites for Refinement2."
+  "Establishing auto-rewrites for Refinement2")
+
+(defstrat sim-b ()
+  (sim auto-rewrite-ref-b)
+  "Proves simulation for Refinement2."
+  "Proving simulation")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                          ;;;
+;;;  Commands for the THEORY "Refinement3":  ;;;
+;;;                                          ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defstep auto-rewrite-ref-c ()
+  (then
+    (auto-rewrite-theory "Garbage_Collector2[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector3[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Garbage_Collector3_Inv[NODES,SONS,ROOTS]" :always? T)
+    (auto-rewrite-theory "Refinement3" :always? T))
+  "Establishes auto-rewrites for Refinement3."
+  "Establishing auto-rewrites for Refinement3")
+
+(defstrat sim-c ()
+  (sim auto-rewrite-ref-c)
+  "Proves simulation for Refinement3."
+  "Proving simulation")
+
+
