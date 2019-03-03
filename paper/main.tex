@@ -24,8 +24,11 @@
 \title{A Refinement Proof for a Garbage Collector}
 
 \author{ 
-Klaus Havelund\inst{2}\thanks{Part of the research performed by 
-his author was carried out at Jet Propulsion Laboratory, California 
+Klaus Havelund\inst{2}\thanks{The research 
+performed by his author was carried out at
+LITP, Paris 6, France (supported by an HCM grant), 
+Aalborg University, Denmark,
+and Jet Propulsion Laboratory, California 
 Institute of Technology, under a contract with the National Aeronautics 
 and Space Administration.}
 \and
@@ -83,4 +86,15 @@ SRI International, Menlo Park, USA
 
 \end{document}
 
-
+% Issues:
+% -------
+%
+% One page 3 it says: "Only the marking phase is verified 
+% in this exercise". What does this refer to?
+%
+% Definition 2 uses *, which suggests traces are finite. 
+% However, they are infinite.
+%
+% Page 7: Perhaps explain early that there is 
+% an additional free list, and that the mutator 
+% colors nodes.
