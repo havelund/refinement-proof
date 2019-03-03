@@ -50,14 +50,16 @@ In  order   better to make  a
 comparison, we also carried out a proof in PVS using the same
 technique   as  in~\cite{Rus:GC}.  This    work   was documented  in
 \cite{havelund-pvs-gc-99}.
-
+%
 In~\cite{HS:BRP}  we verified  a  distributed communication  protocol
 using similar techniques for representing  state transition systems. 
-The work  presented here can therefore be   seen as part of a
-series of  PVS verifications of parallel/distributed algorithms, 
-carried out to establish a framework for such verifications, while
-identifying the main difficulties  in carrying  out such
-proofs. Our  key conclusion  is  that  techniques for
+%The work  presented here can therefore be   seen as part 
+%of a series of  PVS verifications of parallel/distributed 
+%algorithms, carried out to establish a framework for such 
+%verifications, while
+%identifying the main difficulties  in carrying  out such
+%proofs. 
+Our  key conclusion  is  that  techniques for
 strengthening invariants are  of major importance in refinement
 proofs as well as in proofs of temporal properties.  
 %
@@ -83,7 +85,7 @@ Counterexamples    were  later  given    by  Pixley~\cite{Pix:GC}  and
 van~de~Snepscheut~\cite{Van:GC}.   Furthermore,  although    Ben-Ari's
 algorithm (which is the one we verify in PVS) is correct, his proof of
 the safety property was found to be flawed.  This flaw was essentially
-reproduced by Pixley\cite{Pix:GC} where it  again survived the  review
+reproduced by Pixley \cite{Pix:GC} where it  again survived the  review
 process, and was only discovered  ten years later by Russinoff  during
 the course of his mechanical verification~\cite{Rus:GC}.  Ben-Ari also
 gave a flawed  proof of a liveness  property ({\em every garbage  node

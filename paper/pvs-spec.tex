@@ -372,8 +372,9 @@ trace in terms of the next-state relation.
 
 \subsection{The First Refinement}
 
-In this  section  we outline  how the  first refinement   from section
-\ref{first-refinement} of the garbage  collector is  modeled in PVS.  
+In this  section  we outline  how the  first refinement   from 
+Section \ref{first-refinement} of the garbage  collector is  modeled 
+in PVS.  
 In order to keep the presentation reasonably sized, we only illustrate
 this  first refinement.  The    remaining refinements follow the  same
 pattern. First, we describe a collection of  colouring functions.  The
@@ -421,7 +422,7 @@ ranges over a type  that contains the  possible labels.  The  observed
 state  is   still just  the  memory,  hence ignoring, for   example, the
 colouring  {\tt C}\@.  We see that  the mutator next-state relation {\tt
   MUTATOR} is now   defined as a  disjunction  between a {\em  mutate}
-transition and a {\em  colour Q} transition. The collector  next-state
+transition and a {\em  colour} transition. The collector  next-state
 relation {\tt COLLECTOR} is   defined as the disjunction  between  six
 possible transitions.
 

@@ -4,7 +4,7 @@
 
 We now present  the initial  specification of  the  garbage
 collector.  It is  presented as a  transition  system using an informal
-notation for  describing a such.   In Section~\ref{pvs-specifications}
+notation for  describing a such.   In Appendix~\ref{pvs-specifications}
 it is described how we encode transition systems in PVS.
 
 We shall assume a data  structure representing the memory.  The number
@@ -112,9 +112,9 @@ We need to somehow implement the selection of an inaccessible node.
 In this section we outline how the refinement  is carried out in three
 steps,  resulting  in   the  garbage collection   algorithm  described
 informally in Section~\ref{informal-specification}\@.  Each refinement is
-given  an individual  section, which   again is  divided  into a  {\em
-  program}  section  presenting  the new program,   and a  {\em proof}
-section  outlining the  refinement  proof.  According  to
+given  an individual  subsection, which   again is  divided  into a  {\em
+  program}  subsection  presenting  the new program,   and a  {\em proof}
+subsection  outlining the  refinement  proof.  According  to
 Theorem~\ref{theorem-refinement}  a refinement    can be   proved by
 identifying a refinement mapping from the concrete  state space to the
 abstract state  space,  see Definition~\ref{def-refinement-mapping}\@.  
@@ -122,8 +122,8 @@ Hence, each {\em proof} section will consist of a definition of such a
 mapping together with a proof that it is a refinement mapping, focusing
 on   the  simulation relation required in  item $(3)$ of
 Definition~\ref{def-refinement-mapping}\@.  The   PVS encoding  of  the
-programs is described in  Section~\ref{pvs-specifications}, while the PVS 
-encoding of the refinement proofs is described in Section~\ref{pvs-proof}\@.
+programs is described in  Appendix~\ref{pvs-specifications}, while the PVS 
+encoding of the refinement proofs is described in Appendix~\ref{pvs-proof}\@.
 
 
 \subsection{First Refinement : Introducing Colours}
@@ -284,6 +284,7 @@ the concrete program:
   $\implies$ {\tt colour(L)}
 \end{center}
 
+\noindent
 It says that whenever  the concrete collector is  at the {\tt  APPEND}
 location, and node {\tt L} is accessible, then  {\tt L} is also black. 
 From this we can conclude that the {\tt append\_to\_free} operation is
@@ -393,6 +394,7 @@ an invariant is needed about the concrete program:
   {\tt colour(}$r${\tt )}
 \end{center}
 
+\noindent
 It states that in location {\tt PROPAGATE} all roots must be coloured.
 This fact combined with the propagation termination condition {\tt not
   exists\_bw()}: ``there does not exist a pointer from a black node to
@@ -499,6 +501,7 @@ the following invariant is needed:
   {\tt collector@COLOUR\_SONS} $\implies$ {\tt colour(I)}
 \end{center}
 
+\noindent
 This property    implies   that the  abstract   {\tt    PROPAGATE.1}
 transition pre-condition {\tt bw(I,J)} will be true (in case the son
 is white)  or otherwise  (if  the  son is  also  black),  the concrete
@@ -512,6 +515,7 @@ invariant is needed:
   $\neg$ {\tt exists\_bw()}
 \end{center}
 
+\noindent
 It states that when the collector is in  location {\tt COMPARE}, after
 a counting scan where the number of black  nodes have been counted and
 stored in {\tt  BC}, if the number counted  equals the  previous (old)
