@@ -3,6 +3,7 @@
 
 \documentclass{llncs}
 
+\usepackage{chngcntr}
 \usepackage{graphicx}
 \usepackage{boxedminipage,alltt,psfig,epsf,pvs}
 \input{pvstex}
@@ -76,6 +77,7 @@ SRI International, Menlo Park, USA
 \bibliography{biblio}
 
 \appendix
+\counterwithin{figure}{section}
 \input{pvs-spec}
 \input{pvs-proof}
 
