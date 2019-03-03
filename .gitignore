@@ -1,8 +1,8 @@
-paper/.DS_Store
-paper/.texpadtmp/main.aux
-paper/.texpadtmp/main.bbl
-paper/.texpadtmp/main.blg
-paper/.texpadtmp/main.log
-paper/.texpadtmp/main.synctex.gz
-paper/main.pdf
 .DS_Store
+main.pdf
+paper/.DS_Store
+*/paper/.texpadtmp/main.aux
+*/paper/.texpadtmp/main.bbl
+*/paper/.texpadtmp/main.blg
+*/paper/.texpadtmp/main.log
+*/paper/.texpadtmp/main.synctex.gz

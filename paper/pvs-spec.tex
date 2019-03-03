@@ -91,24 +91,7 @@ The theory   {\tt Refine\_Predicate} below  defines  the function {\tt
   refines}, which is   a predicate on   a pair of  observed transition
 systems:   a  low  level  {\bf i}mplementation    system as the  first
 parameter,  and   a high level  {\bf  s}pecification  system as as the
-second parameter.   The theory is parameterized  with  the state space
-{\tt S\_State} of the high level specification theory, the state space
-{\tt  I\_State}  of  the low   level implementation  theory,   and the
-observed  state space {\tt O\_State},  which we remember is common for
-the two observed transition systems. Refinement is defined as follows:
-{\em for all  traces {\tt i\_tr}  of the implementation  system, there
-  exists  a trace {\tt  s\_tr} of the  specification system, such that
-  when mapping the respective projection functions to the traces, they
-  become equal}\@. The function map  has the type {\tt  map : [[D->R] ->
-  [sequence[D] -> sequence[R]]]} and simply  applies a function to all
-the elements of a sequence.  Finally, we introduce  in the theory {\tt
-  Refinement} the  notion     of a  refinement   mapping   (Definition
-\ref{def-refinement-mapping})  and  its  use  for  proving refinement
-(Theorem \ref{theorem-refinement})\@.   The theory is parameterized with
-a specification {\em observed  transition system} (prefixes  {\tt S}),
-an implementation {\em observed transition system} (prefixes {\tt I}),
-an abstraction function {\tt abs}, and  an invariant {\tt I\_inv} over
-the implementation system.
+second parameter.   
 
 %\begin{figure}[htb]
 \begin{smallsession}
@@ -131,6 +114,25 @@ END Refine_Predicate
 %\caption{Refinement}
 \label{pvs-refine-predicate}
 %\end{figure}
+
+The theory is parameterized  with  the state space
+{\tt S\_State} of the high level specification theory, the state space
+{\tt  I\_State}  of  the low   level implementation  theory,   and the
+observed  state space {\tt O\_State},  which we remember is common for
+the two observed transition systems. Refinement is defined as follows:
+{\em for all  traces {\tt i\_tr}  of the implementation  system, there
+  exists  a trace {\tt  s\_tr} of the  specification system, such that
+  when mapping the respective projection functions to the traces, they
+  become equal}\@. The function map  has the type {\tt  map : [[D->R] ->
+  [sequence[D] -> sequence[R]]]} and simply  applies a function to all
+the elements of a sequence.  Finally, we introduce  in the theory {\tt
+  Refinement} the  notion     of a  refinement   mapping   (Definition
+\ref{def-refinement-mapping})  and  its  use  for  proving refinement
+(Theorem \ref{theorem-refinement})\@.   The theory is parameterized with
+a specification {\em observed  transition system} (prefixes  {\tt S}),
+an implementation {\em observed transition system} (prefixes {\tt I}),
+an abstraction function {\tt abs}, and  an invariant {\tt I\_inv} over
+the implementation system.
 
 %\begin{figure}[htb]
 \begin{smallsession}
@@ -414,33 +416,20 @@ END Coloured_Memory
 
 We now show how the first refinement is formulated in PVS.  The entire
 theory called  {\tt  Garbage\_Collector1} is presented in  the figure
-below. First of all, the state type is a record type  with a field for
-each program variable.  In addition to the ordinary program variables,
-there is a program counter ``variable'' for each process: {\tt MU} for
-the  mutator, and {\tt CHI}  for the collector.   Each program counter
-ranges over a type  that contains the  possible labels.  The  observed
-state  is   still just  the  memory,  hence ignoring, for   example, the
-colouring  {\tt C}\@.  We see that  the mutator next-state relation {\tt
-  MUTATOR} is now   defined as a  disjunction  between a {\em  mutate}
-transition and a {\em  colour} transition. The collector  next-state
-relation {\tt COLLECTOR} is   defined as the disjunction  between  six
-possible transitions.
+below. 
 
-%\begin{figure}[htb]
+%\begin{figure}
 \begin{smallsession}
 Garbage_Collector1[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
-BEGIN
-  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
+BEGIN ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
   IMPORTING Coloured_Memory[NODES,SONS,ROOTS]
-  MuPC    : TYPE = \{MUTATE,COLOUR\}  
-  CoPC    : TYPE = \{COLOUR,TEST_L,APPEND\}
-  State   : TYPE = [# MU : MuPC, CHI : CoPC, 
-                      Q : nat, L : nat , C : Colours, M : Memory #]
+  MuPC : TYPE = \{MUTATE,COLOUR\} CoPC : TYPE = \{COLOUR,TEST_L,APPEND\}
+  State   : TYPE = [# MU:MuPC,CHI:CoPC,Q:nat,L:nat,C:Colours,M:Memory #]
   O_State : TYPE = Memory 
   s,s1,s2 : VAR State n,k : VAR Node i : VAR Index
-
   proj(s):O_State = M(s)
   init(s):bool = MU(s) = MUTATE & CHI(s) = COLOUR & M(s) = null_array
+
   Rule_mutate(n,i,k)(s):State =
     IF MU(s) = MUTATE AND accessible(k)(M(s)) THEN 
       s WITH [M := set_son(n,i,k)(M(s)), Q := k, MU := COLOUR] 
@@ -452,6 +441,7 @@ BEGIN
   MUTATOR(s1,s2):bool =
     (EXISTS n,i,k: s2 = Rule_mutate(n,i,k)(s1)) OR 
     s2 = Rule_colour_target(s1)
+
   Rule_stop_colouring(s):State =
     IF CHI(s) = COLOUR AND blackened(C(s),M(s)) THEN
       s WITH [L := 0, CHI := TEST_L] ELSE s ENDIF
@@ -476,13 +466,25 @@ BEGIN
       s2 = Rule_stop_colouring(s1) OR (EXISTS n:s2 = Rule_colour(n)(s1))
    OR s2 = Rule_stop_appending(s1) OR s2 = Rule_continue_appending(s1) 
    OR s2 = Rule_black_to_white(s1) OR s2 = Rule_append_white(s1)
+
   next(s1,s2):bool = MUTATOR(s1,s2) OR COLLECTOR(s1,s2) OR s2 = s1
 END Garbage_Collector1
 \end{smallsession}
 %\caption{First Refinement - the Collector}
-\label{pvs-refinement1}
+%\label{pvs-refinement1}
 %\end{figure}
 
+First of all, the state type is a record type  with a field for
+each program variable.  In addition to the ordinary program variables,
+there is a program counter ``variable'' for each process: {\tt MU} for
+the  mutator, and {\tt CHI}  for the collector.   Each program counter
+ranges over a type  that contains the  possible labels.  The  observed
+state  is   still just  the  memory,  hence ignoring, for   example, the
+colouring  {\tt C}\@.  We see that  the mutator next-state relation {\tt
+  MUTATOR} is now   defined as a  disjunction  between a {\em  mutate}
+transition and a {\em  colour} transition. The collector  next-state
+relation {\tt COLLECTOR} is   defined as the disjunction  between  six
+possible transitions.
 
 %%% Local Variables: 
 %%% mode: latex
