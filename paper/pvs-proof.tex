@@ -32,7 +32,16 @@ During  the proof,   we  need a new   set  of auxiliary  functions  to
 ``observe'' (or calculate)  certain values based  on the current state
 of the memory.  These {\em observer functions} occur in invariants.  In
 the first refinement step, we shall need  the function {\tt blackened}
-defined  in   the     theory {\tt  Memory\_Observers}
+defined  in   the     theory {\tt  Memory\_Observers} below.
+
+This function is  similar to the function  which is part  of the first
+refinement, page \pageref{pvs-coloured-memory}, except  that it has an
+additional natural number argument.   The function returns true if all
+nodes above (and including) its argument are black if accessible.  The
+theory contains other  functions, but these  are first needed in later
+refinements and  will  not  be  discussed   here.  The   lemmas  about
+auxiliary functions that we need for the first refinement are given in
+the theory {\tt Memory\_Properties} below.
 
 %\begin{figure}[htb]
 \begin{smallsession}
@@ -56,30 +65,14 @@ END Memory_Observers
 \label{observer-functions}
 %\end{figure}
 
-This function is  similar to the function  which is part  of the first
-refinement, page \pageref{pvs-coloured-memory}, except  that it has an
-additional natural number argument.   The function returns true if all
-nodes above (and including) its argument are black if accessible.  The
-theory contains other  functions, but these  are first needed in later
-refinements and  will  not  be  discussed   here.  The   lemmas  about
-auxiliary functions that we need for the first refinement are given in
-the theory {\tt Memory\_Properties} below.
-
 %\begin{figure}[htb]
 \begin{smallsession}
 Memory_Properties[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
 BEGIN
-  ASSUMING
-    roots_within : ASSUMPTION ROOTS <= NODES
-  ENDASSUMING
+  ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
   IMPORTING Memory_Observers[NODES,SONS,ROOTS]
-
-  cs        : VAR Colours
-  c         : VAR Colour
-  m         : VAR Memory
-  n,n1,n2,k : VAR Node
-  i,i1,i2,j : VAR Index
-  N,N1,N2   : VAR nat
+  cs : VAR Colours c : VAR Colour m : VAR Memory n,n1,n2,k : VAR Node
+  i,i1,i2,j : VAR Index N,N1,N2 : VAR nat
 
   accessible1 : LEMMA 
     accessible(k)(m) AND accessible(n1)(set_son(n,i,k)(m))
@@ -114,7 +107,6 @@ The  theory  in its entirety contains   other lemmas, needed for later
 refinements, which we shall however not present  here.  The lemma {\tt
   accessible1} is a key lemma,  and it says   that the {\tt  set\_son}
 operator cannot turn garbage nodes into accessible nodes.
-
 
 \subsection{Invariant Lemmas}
 
