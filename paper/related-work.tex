@@ -1,0 +1,106 @@
+
+\section{Related Work}
+\label{sec:related-work}
+
+An initial  version of the algorithm  was  first proposed by Dijkstra,
+Lamport, Martin, Scholten, and Steffers~\cite{DLMSS:GC} as an exercise
+in  organizing and verifying the cooperation  of concurrent processes. 
+Their solution   involved   three  colours.   Ben-Ari    improved this
+algorithm so  as  to use    only  two colours  while  simplifying  the
+resulting proof.  All of these  proofs were  informal {\em pencil  and
+  paper\/} exercises.  As   pointed  out by   Russinoff~\cite{Rus:GC},
+these informal proofs  ran into difficulties  of one sort or  another. 
+Dijkstra, et al~\cite{DLMSS:GC}    explained   (as an  example  of   a
+``logical trap'') how they originally proposed a minor modification to
+the  algorithm.   This claim turned   out  to   be  wrong, and  was
+discovered by the authors just  before the proof reached publication.  
+Ben-Ari  later  proposed the same  modification   to his algorithm and
+argued for   its    correctness   without  discovering its       flaw. 
+Counterexamples    were  later  given    by  Pixley~\cite{Pix:GC}  and
+van~de~Snepscheut~\cite{Van:GC}.   Furthermore,  although    Ben-Ari's
+algorithm (which is the one we verify in PVS) is correct, his proof of
+the safety property was found to be flawed.  This flaw was essentially
+reproduced by Pixley \cite{Pix:GC} where it  again survived the  review
+process, and was only discovered  ten years later by Russinoff  during
+the course of his mechanical verification~\cite{Rus:GC}.  Ben-Ari also
+gave a flawed  proof of a liveness  property ({\em every garbage  node
+  will eventually be collected}) that was later observed and corrected
+by van~de~Snepscheut~\cite{Van:GC}.
+
+The garbage collector  has  also been  specified  and 
+verified in  the
+UNITY  framework~\cite{CM:UNITY} using a  notion of  
+refinement called
+{\em superposition}.  This refinement notion differs  from 
+ours in the
+sense that the initial algorithm (specification)  is not 
+regarded as a
+specification of lower levels.   Rather   it is  taken as 
+an   initial
+starting point that is then enriched with more details 
+until the final
+enrichment   represents the full   algorithm.  Each level 
+inherits the
+properties proved about the previous  level, such that the 
+final level
+inherits  all the properties proven  for all previous 
+levels, and this
+combined collection of  properties can then be used  to 
+prove that the
+final level satisfies  the desired  safety  and liveness  
+properties.  
+Only the marking phase is verified in this exercise.
+
+%@@@\
+
+Our work on the mechanized verification of garbage collectors using PVS was performed in
+1996.  In the same year, 
+Gonthier~\cite{gonthier1996verifying}
+verified a detailed 
+implementation of a realistic concurrent garbage collector~\cite{doligez1994portable} using TLP, a prover
+for the Temporal Logic of Actions.  Gonthier's proof demonstrates 
+that the implementation preserves a complex safety invariant 
+with about 22,000 lines of proof.  Since 1996, there have been a
+number of
+verification efforts aimed at the verification of garbage collectors.
+Jackson~\cite{jackson1998verifying} used an embedding of temporal logic in PVS to verify both
+safety and liveness properties for an abstract
+mutator/allocator/collector model of the tricolor algorithm of
+Dijkstra, \emph{et al}.  This abstract model is then
+refined to a lower-level heap-based implementation.  Burdy formalized
+our refinement argument in both B and Coq for the purpose of comparing
+the
+two formal systems.  In Burdy's formalization, the abstract mutator
+already colors the target of a pointer assignment.
+Gammie, Hosking,
+and Engelhardt~\cite{gammie2015relaxing} describe the Isabelle/HOL
+formalization and verification of
+the tricolor concurrent garbage 
+collector (similar to the one verified by Gonthier) for an x86-TSO
+memory model in a multi-mutator setting as an invariance proof.
+Many of the proofs build in the cooperative marking by the mutator
+into the specification.  When this marking is viewed as a refinement,
+it
+is important to demonstrate that the refinement has not restricted the
+mutator so that it does not generate any garbage.  It can do this, for
+example,
+by never redirecting a pointer so that a node is orphaned.  Such a
+mutator
+would satisfy the refinement with an idle garbage collector.  A
+correct
+refinement must preserve the nondeterminism of the client and must
+therefore must simultaneously witness a simulation relation on the
+collector and a bisimulation
+relation on the mutator.  
+
+Several efforts cover non-concurrent garbage collectors.  McCreight,
+Shao, Lin, and Li~\cite{mccreight2007general} use Coq to
+verify the safety of the implementation of several
+stop-the-world and incremental garbage collectors in an assembly
+language.  Coupet-Grimal and Nouvet~\cite{8133460} embed temporal
+logic in Coq to verify an incremental garbage collection algorithm.
+Hawblitzel and Petrank~\cite{hawblitzel2009automated} verify stop-the-world garbage collectors using
+Boogie exploiting the quantifier instantiation capability of the Z3
+SMT solver. Ericsson, Myreen, and Pohjola~\cite{ericsson2017verified}
+describe the verification of
+the CakeML generational garbage collector in HOL4.
