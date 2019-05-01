@@ -1,0 +1,4 @@
+
+
+- In parts one could provide some more high-level intuition in definitions 1-5 
+

@@ -1,0 +1,59 @@
+Dear authors, 
+
+      please take in consideration the reviews that follow 
+and revise your paper accordingly. 
+We will need the camera ready version with all the sources
+by the 10th of May 2019. Please fill also the following 
+copyright form: 
+
+http://www.eziobartocci.com/copyright_scotts_workshop.pdf
+
+and upload through EasyChair by the 10th of May 2019. 
+
+Another mail about the registration fee and the logistics 
+will follow. I suggest to book your accommodation as soon 
+as possible here (because otherwise it will be very expensive). 
+Information about the venue location are available here:
+
+http://scottfest.conf.tuwien.ac.at/venue/
+
+Best regards
+
+Ezio Bartocci
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 8
+TITLE: A Refinement Proof for a Garbage Collector
+AUTHORS: Klaus Havelund and Natarajan Shankar
+
+Overall evaluation: 2 (accept)
+
+----------- Overall evaluation -----------
+The paper 'A Refinement Proof for a Garbage Collector' has a nostalgic character, leading one back to the nineties - and it still tells an interesting story. It is nice to see the comparison with the usual
+invariant-based proofs. There are only a few things to criticize:
+- The name of the second author should be corrected.
+- The sixth sentence in the abstract reads strangely.
+- In parts one could provide some more high-level intuition, like
+  that P in Definition 6 simply reflects/abstracts reachability. 
+
+The appendix is enormously long and should be diverted to an
+electronic appendix (this is explicitly supported by LNCS).
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 8
+TITLE: A Refinement Proof for a Garbage Collector
+AUTHORS: Klaus Havelund and Natarajan Shankar
+
+Overall evaluation: 2 (accept)
+
+----------- Overall evaluation -----------
+The paper shows how to use the Prototype Verification Systems (PVS) to verify safety properties of garbage collection algorithm. The paper is very interesting and it definitely fits the scope of the workshops.
+
+Commnents for the final version:
+
+   - You have introduced the abbreviation PVS without explaining what does it mean, so please mention it.
+   - Please change the reference styles using numbers. 
+   - Check the correctness of the authors' names (Sjankar).
+   - Submit a long version of the paper to https://arxiv.org, while produce a camara reay version without the Appendix. (you can refer the paper in arxiv for that).
