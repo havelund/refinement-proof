@@ -54,7 +54,7 @@ system can be defined as follows.
 \noindent
 We shall need the notion of a  transition system invariant, which is
 a state predicate true  in all states reachable  from an initial state
-by following the transition relation.
+by following the next-state relation.
 
 \begin{definition}[Invariant]
 \label{def-invariants}
@@ -114,7 +114,9 @@ An observed transition system\\
   $S_2$ $=$ $(\Sigma_2,\Sigma_o,I_2,N_2,\pi_2)$ 
 {\em refines} an observed transition system   
   $S_1$ $=$ $(\Sigma_1,\Sigma_o,I_1,N_1,\pi_1)$ 
-iff (note that they have the same observed state space $\Sigma_o$):
+iff 
+for every trace of $S_2$ there exists a trace of $S_1$ with the same observed states
+(note that they have the same observed state space $\Sigma_o$):
 
 \[
   \forall \sigma_2 \in \Theta(S_2) \cdot 
@@ -144,7 +146,7 @@ A {\em refinement mapping} from an observed transition system
 to an observed transition system
   $S_1 = (\Sigma_1,\Sigma_o,I_1,N_1,\pi_1)$
 is a mapping $f : \Sigma_2 \rightarrow \Sigma_1$ such that there exists an
-$S_2$ invariant $P$ (representing reachable states),  where:
+$S_2$ invariant $P$ (representing reachable states in $S_2$),  where:
 
 \begin{enumerate}
 
@@ -159,6 +161,15 @@ $S_2$ invariant $P$ (representing reachable states),  where:
 \end{definition}
 
 \noindent
+Condition 1 says that the observation of a state in $S_2$ is the same as that of
+its image in $S_1$ obtained by applying the refinement mapping.
+%
+Condition 2 says that an initial state in $S_2$ is mapped to an initial state in $S_1$.
+%
+Condition 3 says that if two {\em reachable} states (satisfying the invariant $P$) 
+in $S_2$ are connected via $S_2$'s next-state relation, then their images in $S_1$ 
+are correspondingly connected via $S_1$'s next-state relation.
+
 We   can now    state   the  main   theorem   (which  is   stated   in
 \cite{AL:Mappings}, and which we have proved in  PVS for our slightly
 modified version):
