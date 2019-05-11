@@ -15,7 +15,7 @@ Jackson~\cite{jackson1998verifying} used an embedding of temporal logic in PVS t
 safety and liveness properties for an abstract
 mutator/allocator/collector model of the tricolor algorithm of
 Dijkstra, \emph{et al}.  This abstract model is then
-refined to a lower-level heap-based implementation.  Burdy formalized
+refined to a lower-level heap-based implementation.  Burdy \cite{burd01} formalized
 our refinement argument in both B and Coq for the purpose of comparing
 the
 two formal systems.  In Burdy's formalization, the abstract mutator
@@ -26,17 +26,21 @@ formalization and verification of
 the tricolor concurrent garbage 
 collector (similar to the one verified by Gonthier) for an x86-TSO
 memory model in a multi-mutator setting as an invariance proof.
-Many of the proofs build in the cooperative marking by the mutator
-into the specification.  When this marking is viewed as a refinement,
+Many of the proofs build the cooperative marking by the mutator
+into the specification.  When this marking 
+by the mutator alternatively
+is viewed as a refinement,
+as in our proof,
 it
 is important to demonstrate that the refinement has not restricted the
 mutator so that it does not generate any garbage.  It can do this, for
 example,
-by never redirecting a pointer so that a node is orphaned.  Such a
+by never redirecting a pointer so as to leave a node orphaned.
+Such a
 mutator
 would satisfy the refinement with an idle garbage collector.  A
 correct
-refinement must preserve the nondeterminism of the client and
+refinement must preserve the nondeterminism of the mutator and
 therefore must simultaneously witness a simulation relation on the
 collector and a bisimulation
 relation on the mutator.  

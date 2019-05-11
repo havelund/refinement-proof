@@ -13,7 +13,7 @@ Recall     from  section  \ref{transition-systems}    that an observed
 transition   system      is    a      five-tuple   of     the    form:
 $(\Sigma,\Sigma_o,I,N,\pi)$                                (Definition
 \ref{def-observed-transition-system})\@. In PVS  we  model this as a  theory
-with two type definitions, and  three function definitions:
+with two type definitions, and  three function definitions.
 
 %\begin{figure}[htb]
 \begin{smallsession}
@@ -40,22 +40,20 @@ specification of the garbage collector  as well as all its refinements
 in this  way.   It  will become clear   below how  in   particular the
 function {\tt  next} is defined.   Now we can  define  what is a trace
 (Definition \ref{def-traces}) and what   is an  invariant  (Definition
-\ref{def-invariants})\@.   This is  done in  the theory  {\tt Traces}:
+\ref{def-invariants})\@.   This is  done in  the theory  {\tt Traces}.
 
 %\begin{figure}[htb]
 \begin{smallsession}
-Traces[State : TYPE] : THEORY
+Traces[State:TYPE] : THEORY
 BEGIN
   init : VAR pred[State]
   next : VAR pred[[State,State]]
   sq   : VAR sequence[State]
   n    : VAR nat
-
-  trace(init,next)(sq):bool =
-    init(sq(0)) AND
-    FORALL n: next(sq(n),sq(n+1))
-
-  p  : VAR pred[State]
+  p    : VAR pred[State]
+  
+  trace(init,next)(sq):bool = 
+    init(sq(0)) AND FORALL n: next(sq(n),sq(n+1))
 
   invariant(init,next)(p):bool =
     FORALL (tr:(trace(init,next))): FORALL n: p(tr(n))
@@ -302,13 +300,13 @@ operation says  that {\em in appending a  garbage node, only that node
 
 \subsubsection{The Mutator and the Collector}
 
-The  complete PVS formalization  of  the  garbage collector top  level
+The  complete PVS formalization  of  the top  level
 specification  presented in section  \ref{goto-specification} is given
 below.
 
 %\begin{figure}[htb]
 \begin{smallsession}
-Garbage_Collector[NODES : posnat, SONS : posnat, ROOTS : posnat] : THEORY
+Garbage_Collector[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
 BEGIN
   ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
   IMPORTING Memory[NODES,SONS,ROOTS]
@@ -390,7 +388,7 @@ and  {\tt blackened} are  formalizations of those  presented in Figure \ref{refi
 
 %\begin{figure}[htb]
 \begin{smallsession}
-Coloured_Memory[NODES : posnat, SONS : posnat, ROOTS : posnat] : THEORY
+Coloured_Memory[NODES:posnat, SONS:posnat, ROOTS:posnat] : THEORY
 BEGIN
   ASSUMING roots_within : ASSUMPTION ROOTS <= NODES ENDASSUMING
   IMPORTING Memory[NODES,SONS,ROOTS]
@@ -414,8 +412,7 @@ END Coloured_Memory
 %\end{figure}
 
 We now show how the first refinement is formulated in PVS.  The entire
-theory called  {\tt  Garbage\_Collector1} is presented in  the figure
-below. 
+theory called  {\tt  Garbage\_Collector1} is presented below. 
 
 %\begin{figure}
 \begin{smallsession}

@@ -13,7 +13,7 @@ stabilized, all the white nodes can be collected and placed in the
 free list.
 
 An initial  version of the algorithm  was  first proposed by Dijkstra,
-Lamport, Martin, Scholten, and Steffers~\cite{DLMSS:GC} as an exercise
+Lamport, Martin, Scholten, and Steffens~\cite{DLMSS:GC} as an exercise
 in  organizing and verifying the cooperation  of concurrent processes. 
 Their solution   involved   three  colours.   Ben-Ari    improved this
 algorithm so  as  to use    only  two colours  while  simplifying  the
@@ -48,13 +48,18 @@ any time be in one of 9 different locations.  In one of the locations,
 here  called {\sc  Append},  the {\em append} operation  representing
 garbage collection is applied to a certain  memory node $X$, but only
 when this node is white. The safety  predicate  $P$  is  then formulated  as:
-
-\begin{center}
-  If the control of the garbage collector is at\\ location {\sc Append} and
-  $X$ is white then $X$ is garbage 
-\end{center}
-
-\noindent
+%
+{\em ``if the control of the garbage collector is at 
+location {\sc Append} and
+$X$ is white then $X$ is garbage''}.
+%
+%\begin{center}
+%  {\em If the control of the garbage collector is at\\ 
+%  location {\sc Append} and
+%  $X$ is white then $X$ is garbage} 
+%\end{center}
+%
+%\noindent
 However, this formulation of   the  safety property does not really  tell us
 whether the  program is correct.  We 
 have to additionally ensure that  the {\em append} operation is
@@ -87,8 +92,8 @@ using similar techniques for representing  state transition systems.
 %identifying the main difficulties  in carrying  out such
 %proofs. 
 Our  key conclusion  is  that  techniques for
-strengthening invariants are  of major importance in refinement
-proofs as well as in proofs of temporal properties.  
+strengthening invariants are  of major importance also in refinement
+proofs, and that refinement does not remove this burden.  
 %
 The proof presented here was carried out over two decades ago, but
 was only published as a (substantial) technical report \cite{havelund-shankar-gc-report-97}. 

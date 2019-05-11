@@ -37,7 +37,7 @@ defined  in   the     theory {\tt  Memory\_Observers} below.
 This function is  similar to the function  which is part  of the first
 refinement, page \pageref{pvs-coloured-memory}, except  that it has an
 additional natural number argument.   The function returns true if all
-nodes above (and including) its argument are black if accessible.  The
+nodes above (and including) that argument are black if accessible.  The
 theory contains other  functions, but these  are first needed in later
 refinements and  will  not  be  discussed   here.  The   lemmas  about
 auxiliary functions that we need for the first refinement are given in
@@ -145,7 +145,7 @@ END Garbage_Collector1_Inv
 %\end{figure}
 
 Invariant  {\tt inv1} is    in fact  the safety property    originally
-formulated   for  the garbage  collector  \cite{Rus:GC}\@.    Its  proof
+formulated   for  the garbage  collector  in \cite{Rus:GC}\@.    Its  proof
 requires  a  generalization,  which is   {\tt  inv2}\@.   This shows  an
 example,  where we have to strengthen  an invariant ({\tt  inv1}) to a
 stronger invariant ({\tt inv2}), which is then proven instead.
@@ -222,7 +222,7 @@ section                \ref{first-informal-refinement}            page
 \pageref{append-refines-collect}, we show for each concrete transition
 which abstract transition it simulates,  for example we had that  {\tt
   APPEND.1} $\refines$ {\tt COLLECT.1},  which in this PVS  setting is
-formulated as the following lemma:
+formulated as the following lemma.
 
 %\begin{figure}[htb]
 \begin{smallsession}

@@ -20,10 +20,9 @@ an array implementation here for clarity of presentation. }.
 
 \begin{figure}[htb]
 \begin{smallsession}
-  var
-    M : array[Node,Index] of Node;
+  var M : array[Node,Index] of Node;
 \end{smallsession}
-\caption{Specification State}
+\caption{Specification state}
 \label{spec-state}
 \end{figure}
 
@@ -42,7 +41,7 @@ procedures (e.g., for modifying  the  state) are assumed, see Fig \ref{spec-func
   procedure set_son(n:Node,i:Index,k:Node);
   procedure append_to_free(n:Node);
 \end{smallsession}
-\caption{Auxiliary Functions used in the Specification}
+\caption{Functions and procedures used in the specification}
 \label{spec-functions}
 \end{figure}
 
@@ -51,7 +50,7 @@ accessible from one of the roots by  following pointers.  The function
 {\tt son} returns  the contents of  cell  {\tt (n,i)}\@.  The  procedure
 {\tt set\_son} assigns {\tt k} to the cell identified  by {\tt (n,i)}\@. 
 Hence after the  procedure has been called,   this cell now points  to
-{\tt k}\@.  The function {\tt   append\_to\_free} appends its  argument
+{\tt k}\@.  The procedure {\tt   append\_to\_free} appends its  argument
 node to the list  of free nodes,  assuming that it is  a garbage node. 
 The specification consists of  the parallel composition of the mutator
 and   the     collector.    The  mutator is shown in Fig. \ref{spec-mutator}.
@@ -64,21 +63,21 @@ and   the     collector.    The  mutator is shown in Fig. \ref{spec-mutator}.
           goto MODIFY
         end
 \end{smallsession}
-\caption{Specification of Mutator}
+\caption{Specification of mutator}
 \label{spec-mutator}
 \end{figure}
 
 A program at  any time during   its execution is  in  one of a  finite
 collection of locations  that are identified  by program  labels.  The
 above mutator has one such location named  {\tt MODIFY}\@.  Associated
-with  each location is  a set of  numbered (e.g. {\tt [1]}, {\tt [2]})
+with  each location is  a set of  numbered ({\tt [1]}, {\tt [2]}, \ldots)
 rules,    typically of the form   {\tt  p -> s},   where  {\tt p} is a
 pre-condition on the  state and  {\tt s}  is an assignment  statement. 
 When the program  execution is at this  location, all rules where  the
 condition  {\tt p}  is true  in the  current state are  enabled, and a
 non-deterministic choice is  made between them,  resulting in the next
 state being obtained  by applying the {\tt s}  statement of the chosen
-rule to the current state.  The ``{\tt choose x:T where  p -> s end}''
+rule to the current state.  The ``{\tt choose x:T where  p(x) -> s end}''
 construct represents a set of such rules,  one for each choice of {\tt
   x} within its type {\tt T}\@.  Hence, the mutator repeatedly chooses
 two   arbitrary  nodes {\tt  n,k:Node}   and  an arbitrary index  {\tt
@@ -93,7 +92,7 @@ then set to point to {\tt k}\@.  The collector is shown in Fig \ref{spec-collect
           goto COLLECT
         end
 \end{smallsession}
-\caption{Specification of Collector}
+\caption{Specification of collector}
 \label{spec-collector}
 \end{figure}
 
@@ -133,7 +132,7 @@ encoding of the refinement proofs is described in Appendix~\ref{pvs-proof}\@.
 
 In  the first step, the  collector is refined  to base  its search for
 garbage nodes  on a colouring  technique.  The  type {\tt  Colour}  is
-defined as {\tt bool},  the set of  booleans, assumed to represent the
+defined as {\tt bool},  the set of  Booleans, assumed to represent the
 colours {\em black}   (true) and {\em  white} (false)\@.    The global
 state must be  extended with  a colouring  of each node  in the memory
 (not each cell), and a couple of extra auxiliary variables {\tt Q} and
@@ -148,7 +147,7 @@ state must be  extended with  a colouring  of each node  in the memory
     Q : Node;
     L : nat;
 \end{smallsession}
-\caption{First Refinement State}
+\caption{First refinement state}
 \label{refinement1-state}
 \end{figure}
 
@@ -161,12 +160,12 @@ shown in Fig. \ref{refinement1-functions}.
   function  colour(n:Node):Colour;
   function  blackened():bool;
 \end{smallsession}
-\caption{Additional Auxiliary Functions used in First Refinement}
+\caption{Additional functions and procedures used in first refinement}
 \label{refinement1-functions}
 \end{figure}
 
 The procedure {\tt set\_colour} colours a node either white or black by
-updating the concrete variable {\tt C}\@.  
+updating the variable {\tt C}\@.  
 The function {\tt colour} returns the colour of a node. Finally, the function
 {\tt blackened} returns true if {\em all accessible nodes are black}\@.
 The  mutator is  now  refined  into  the program  which was informally
@@ -183,7 +182,7 @@ described   in    Section~\ref{informal-specification}, see Fig. \ref{refinement
   COLOUR :  
     [1] true -> set_colour(Q,true); goto MUTATE;
 \end{smallsession}
-\caption{Refinement of Mutator}
+\caption{Refinement of mutator}
 \label{refinement1-mutator}
 \end{figure}
 
@@ -210,7 +209,7 @@ coloured black.    {\em Note that    the mutator will not  be  further
     [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
     [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
 \end{smallsession}
-\caption{First Refinement of Collector}
+\caption{First refinement of collector}
 \label{refinement1-collector}
 \end{figure}
 
@@ -246,7 +245,7 @@ mapped.  In fact, each program (mutator, collector) can be regarded as
 having a program   counter  variable, and we    have to show  how  the
 abstract program   counter is obtained  (mapped)  from  the  concrete. 
 Whenever the  concrete program is in a  particular  location $l$, then
-the abstract will be in  the location $abs(l)$.   In the current case,
+the abstract program will be in  the location $abs(l)$.   In the current case,
 the concrete mutator locations {\tt  MUTATE} and {\tt COLOUR} are both
 mapped to  {\tt MODIFY}, while  the  concrete collector locations {\tt
   COLOUR}, {\tt  TEST\_L}  and {\tt APPEND}   all are mapped   to {\tt
@@ -309,6 +308,8 @@ strategy, where first all roots are coloured, and next all white nodes
 which have a black father are coloured.  The state is extended with an
 extra auxiliary variable {\tt K}  used for controlling the  iteration
 through  the  roots.   The   extended    state is shown  in Fig \ref{refinement2-state}.
+Two  additional    functions are needed, shown 
+in Fig. \ref{refinement2-functions}.
 
 \begin{figure}[htb]
 \begin{smallsession}
@@ -318,19 +319,16 @@ through  the  roots.   The   extended    state is shown  in Fig \ref{refinement2
     Q : Node;
     K, L : nat;
 \end{smallsession}
-\caption{Second Refinement State}
+\caption{Second refinement state}
 \label{refinement2-state}
 \end{figure}
-
-\noindent Two  additional    functions are needed, shown in Fig. 
-\ref{refinement2-functions}.
 
 \begin{figure}[htb]
 \begin{smallsession}
   function bw(n:Node,i:Index):bool;
   function exists_bw():bool;
 \end{smallsession}
-\caption{Additional Auxiliary Functions used in Second Refinement}
+\caption{Additional functions used in second refinement}
 \label{refinement2-functions}
 \end{figure}
 
@@ -358,7 +356,7 @@ shown in Fig. \ref{refinement2-collector}.
     [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
     [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
 \end{smallsession}
-\caption{Second Refinement of Collector}
+\caption{Second refinement of collector}
 \label{refinement2-collector}
 \end{figure}
 
@@ -425,7 +423,7 @@ controlling loops, see Fig. \ref{refinement3-state}.
     Q   : Node;
     H, I, J, K, BC, OBC : nat;
 \end{smallsession}
-\caption{Third Refinement State}
+\caption{Third refinement state}
 \label{refinement3-state}
 \end{figure}
 
@@ -464,7 +462,7 @@ controlling loops, see Fig. \ref{refinement3-state}.
     [1] not colour(L) -> append_to_free(L); L := L + 1; goto TEST_L;
     [2] colour(L) -> set_colour(L,false); L := L + 1; goto TEST_L; 
 \end{smallsession}
-\caption{Third Refinement of Collector}
+\caption{Third and final refinement of collector}
 \label{refinement3-collector}
 \end{figure}
 
